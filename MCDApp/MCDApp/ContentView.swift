@@ -3,17 +3,17 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         TabView {
-            Text("My Coupons")
+            MyCouponsView()
                 .tabItem {
                     Label("My Coupons", systemImage: "ticket.fill")
                 }
 
-            Text("Campaigns")
+            CampaignsView()
                 .tabItem {
                     Label("Campaigns", systemImage: "calendar")
                 }
 
-            Text("Available")
+            AvailableCouponsView()
                 .tabItem {
                     Label("Available", systemImage: "plus.circle.fill")
                 }
