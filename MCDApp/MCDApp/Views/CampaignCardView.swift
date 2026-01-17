@@ -89,6 +89,7 @@ struct CampaignCardView: View {
         id: "1",
         title: "Spring Festival 2026",
         description: "Enjoy special discounts and exclusive menu items during our Spring Festival celebration!",
+        imageUrl: nil,
         startDate: "2026-03-01",
         endDate: "2026-03-31",
         isSubscribed: true
