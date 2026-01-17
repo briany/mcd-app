@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "mcd-mcp": {
+      "type": "http",
+      "url": "https://mcp.mcd.cn/mcp-servers/mcd-mcp",
+      "headers": {
+        "Authorization": "Bearer 1t8EuirFCyleKY9dCeBAMOXUsMnzYcj2"
+      }
+    }
+  }
+}
