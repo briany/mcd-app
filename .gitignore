@@ -21,3 +21,10 @@ Packages/
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Sensitive configuration files (contains API tokens)
+.mcp.json
+**/Config.plist
+
+# IDE
+.vscode/

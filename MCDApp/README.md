@@ -85,7 +85,33 @@ MCDApp/
 
 ## Configuration
 
-The app connects to the McDonald's MCP API using the endpoint configured in `~/.mcp.json`. Ensure this file is properly configured with your MCP server details.
+### API Token Setup
+
+You need a McDonald's China MCP API token. Configure it using one of these methods:
+
+**Option A: Environment Variable (Recommended)**
+```bash
+export MCD_MCP_TOKEN=your_token_here
+swift run
+```
+
+**Option B: Config File**
+```bash
+# Copy the template
+cp MCDApp/Config.plist.example MCDApp/Config.plist
+
+# Edit Config.plist and replace YOUR_TOKEN_HERE with your actual token
+```
+
+**Option C: For Claude Code MCP integration**
+```bash
+# Copy the template (in project root)
+cp ../.mcp.json.example ../.mcp.json
+
+# Edit .mcp.json and replace YOUR_TOKEN_HERE with your actual token
+```
+
+> ⚠️ **Security Note**: Never commit `Config.plist` or `.mcp.json` to git. These files are in `.gitignore`.
 
 ## Testing
 
