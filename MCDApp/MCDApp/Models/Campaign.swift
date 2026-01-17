@@ -4,6 +4,7 @@ struct Campaign: Identifiable, Codable, Hashable {
     let id: String
     let title: String
     let description: String
+    let imageUrl: String?
     let startDate: String
     let endDate: String
     let isSubscribed: Bool
