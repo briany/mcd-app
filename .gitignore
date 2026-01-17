@@ -1,0 +1,23 @@
+# Worktrees
+.worktrees/
+
+# Xcode
+*.xcodeproj
+*.xcworkspace
+.DS_Store
+xcuserdata/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+Packages/
+*.swiftpm
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
