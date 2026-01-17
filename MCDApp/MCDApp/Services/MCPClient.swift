@@ -120,8 +120,8 @@ private struct JSONCodingKeys: CodingKey {
 actor MCPClient {
     static let shared = MCPClient()
 
-    private let baseURL = "https://mcp.mcd.cn/mcp-servers/mcd-mcp"
-    private let token = "REDACTED_TOKEN"
+    private let baseURL = Config.mcpBaseURL
+    private let token = Config.mcpToken
 
     private var cache: [String: (data: Data, timestamp: Date)] = [:]
     private let cacheExpiration: TimeInterval = 300 // 5 minutes
