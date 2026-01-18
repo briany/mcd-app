@@ -14,8 +14,10 @@ DerivedData/
 
 # Swift Package Manager
 .build/
-Packages/
 *.swiftpm
+# Ignore SPM-generated Packages directories, but allow our source packages/ directory
+!packages/
+./**/Packages/
 
 # macOS
 .DS_Store
