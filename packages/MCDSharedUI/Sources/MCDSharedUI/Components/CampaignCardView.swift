@@ -52,7 +52,7 @@ public struct CampaignCardView: View {
             }
         }
         .padding()
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(Color.gray.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
