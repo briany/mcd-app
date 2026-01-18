@@ -1,0 +1,430 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1A000001 /* MCSiOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000001 /* MCSiOSApp.swift */; };
+		1A000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000002 /* ContentView.swift */; };
+		1A000003 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000003 /* Config.swift */; };
+		1A000005 /* Config.plist in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A000005 /* Config.plist */; };
+		1A000011 /* Coupon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000011 /* Coupon.swift */; };
+		1A000012 /* Campaign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000012 /* Campaign.swift */; };
+		1A000013 /* MCPResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000013 /* MCPResponse.swift */; };
+		1A000021 /* MCPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000021 /* MCPClient.swift */; };
+		1A000022 /* MCPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000022 /* MCPError.swift */; };
+		1A000023 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000023 /* MarkdownParser.swift */; };
+		1A000031 /* CouponViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000031 /* CouponViewModel.swift */; };
+		1A000032 /* CampaignViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000032 /* CampaignViewModel.swift */; };
+		1A000041 /* MyCouponsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000041 /* MyCouponsView.swift */; };
+		1A000042 /* CampaignsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000042 /* CampaignsView.swift */; };
+		1A000043 /* AvailableCouponsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000043 /* AvailableCouponsView.swift */; };
+		1A000044 /* CouponCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000044 /* CouponCardView.swift */; };
+		1A000045 /* CampaignCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000045 /* CampaignCardView.swift */; };
+		D3DA56EC2F1C779D00E42B03 /* Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2A000005 /* Config.plist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		2A000001 /* MCSiOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCSiOSApp.swift; sourceTree = "<group>"; };
+		2A000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		2A000003 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		2A000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2A000005 /* Config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config.plist; sourceTree = "<group>"; };
+		2A000011 /* Coupon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coupon.swift; sourceTree = "<group>"; };
+		2A000012 /* Campaign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Campaign.swift; sourceTree = "<group>"; };
+		2A000013 /* MCPResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPResponse.swift; sourceTree = "<group>"; };
+		2A000021 /* MCPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPClient.swift; sourceTree = "<group>"; };
+		2A000022 /* MCPError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPError.swift; sourceTree = "<group>"; };
+		2A000023 /* MarkdownParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownParser.swift; sourceTree = "<group>"; };
+		2A000031 /* CouponViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CouponViewModel.swift; sourceTree = "<group>"; };
+		2A000032 /* CampaignViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignViewModel.swift; sourceTree = "<group>"; };
+		2A000041 /* MyCouponsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCouponsView.swift; sourceTree = "<group>"; };
+		2A000042 /* CampaignsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignsView.swift; sourceTree = "<group>"; };
+		2A000043 /* AvailableCouponsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvailableCouponsView.swift; sourceTree = "<group>"; };
+		2A000044 /* CouponCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CouponCardView.swift; sourceTree = "<group>"; };
+		2A000045 /* CampaignCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignCardView.swift; sourceTree = "<group>"; };
+		3A000001 /* MCS-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MCS-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3B000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A000005 /* Config.plist in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4A000001 = {
+			isa = PBXGroup;
+			children = (
+				4A000002,
+				4A000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4A000002 = {
+			isa = PBXGroup;
+			children = (
+				2A000001 /* MCSiOSApp.swift */,
+				2A000002 /* ContentView.swift */,
+				2A000003 /* Config.swift */,
+				2A000004 /* Info.plist */,
+				2A000005 /* Config.plist */,
+				4A000010 /* Models */,
+				4A000020 /* Services */,
+				4A000030 /* ViewModels */,
+				4A000040 /* Views */,
+			);
+			sourceTree = "<group>";
+		};
+		4A000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3A000001 /* MCS-iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4A000010 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				2A000011 /* Coupon.swift */,
+				2A000012 /* Campaign.swift */,
+				2A000013 /* MCPResponse.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		4A000020 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				2A000021 /* MCPClient.swift */,
+				2A000022 /* MCPError.swift */,
+				2A000023 /* MarkdownParser.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		4A000030 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				2A000031 /* CouponViewModel.swift */,
+				2A000032 /* CampaignViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		4A000040 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2A000041 /* MyCouponsView.swift */,
+				2A000042 /* CampaignsView.swift */,
+				2A000043 /* AvailableCouponsView.swift */,
+				2A000044 /* CouponCardView.swift */,
+				2A000045 /* CampaignCardView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5A000001 /* MCS-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5B000001 /* Build configuration list for PBXNativeTarget "MCS-iOS" */;
+			buildPhases = (
+				5C000001 /* Sources */,
+				3B000001 /* Frameworks */,
+				5D000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "MCS-iOS";
+			productName = "MCS-iOS";
+			productReference = 3A000001 /* MCS-iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6A000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					5A000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 6B000001 /* Build configuration list for PBXProject "MCS-iOS" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 4A000001;
+			productRefGroup = 4A000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5A000001 /* MCS-iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5D000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3DA56EC2F1C779D00E42B03 /* Config.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5C000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A000001 /* MCSiOSApp.swift in Sources */,
+				1A000002 /* ContentView.swift in Sources */,
+				1A000003 /* Config.swift in Sources */,
+				1A000011 /* Coupon.swift in Sources */,
+				1A000012 /* Campaign.swift in Sources */,
+				1A000013 /* MCPResponse.swift in Sources */,
+				1A000021 /* MCPClient.swift in Sources */,
+				1A000022 /* MCPError.swift in Sources */,
+				1A000023 /* MarkdownParser.swift in Sources */,
+				1A000031 /* CouponViewModel.swift in Sources */,
+				1A000032 /* CampaignViewModel.swift in Sources */,
+				1A000041 /* MyCouponsView.swift in Sources */,
+				1A000042 /* CampaignsView.swift in Sources */,
+				1A000043 /* AvailableCouponsView.swift in Sources */,
+				1A000044 /* CouponCardView.swift in Sources */,
+				1A000045 /* CampaignCardView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		7A000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		7A000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7A000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 696NMT9M95;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yangjiong.mcd.mcs-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7A000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 696NMT9M95;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yangjiong.mcd.mcs-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5B000001 /* Build configuration list for PBXNativeTarget "MCS-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A000003 /* Debug */,
+				7A000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6B000001 /* Build configuration list for PBXProject "MCS-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A000001 /* Debug */,
+				7A000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6A000001 /* Project object */;
+}
