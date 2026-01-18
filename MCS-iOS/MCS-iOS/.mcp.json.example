@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "mcd-mcp": {
+      "url": "https://mcp.mcd.cn/mcp-servers/mcd-mcp",
+      "token": "your_token_here",
+      "description": "McDonald's China MCP Server"
+    }
+  }
+}
