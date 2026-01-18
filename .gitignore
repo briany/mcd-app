@@ -2,8 +2,13 @@
 .worktrees/
 
 # Xcode
-*.xcodeproj
-*.xcworkspace
+# Ignore user-specific files but keep project.pbxproj
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/
 .DS_Store
 xcuserdata/
 DerivedData/
