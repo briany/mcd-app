@@ -5,28 +5,13 @@ import { useMemo, useState } from "react";
 import { CouponCard } from "@/components/CouponCard";
 import { StatusBanner } from "@/components/StatusBanner";
 import { useCoupons } from "@/hooks/useCoupons";
-import type { Coupon } from "@/lib/types";
+import { matchesFilter } from "@/lib/filters";
 
 const statusOptions = [
   { value: "all", label: "All" },
   { value: "active", label: "Active" },
   { value: "expired", label: "Expired" },
 ];
-
-const matchesFilter = (coupon: Coupon, status: string, query: string) => {
-  const normalizedQuery = query.trim().toLowerCase();
-  const matchesStatus =
-    status === "all" ||
-    (status === "active" && !coupon.status.toLowerCase().includes("expire")) ||
-    (status === "expired" && coupon.status.toLowerCase().includes("expire"));
-
-  const matchesQuery =
-    !normalizedQuery ||
-    coupon.name.toLowerCase().includes(normalizedQuery) ||
-    coupon.status.toLowerCase().includes(normalizedQuery);
-
-  return matchesStatus && matchesQuery;
-};
 
 export default function CouponsPage() {
   const { data, isLoading, error, claimCoupon, isClaiming } = useCoupons();

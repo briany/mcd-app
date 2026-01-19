@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import type { Coupon } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { statusColor, humanizeExpiry } from "@/lib/couponUtils";
 
 interface CouponCardProps {
   coupon: Coupon;
@@ -9,24 +10,6 @@ interface CouponCardProps {
   onCtaClick?: (coupon: Coupon) => void;
   disabled?: boolean;
 }
-
-const statusColor = (status: string) => {
-  const normalized = status.toLowerCase();
-  if (normalized.includes("expire")) return "text-rose-600";
-  if (normalized.includes("active")) return "text-emerald-600";
-  return "text-slate-500";
-};
-
-const humanizeExpiry = (expiryDate: string) => {
-  const expiry = new Date(expiryDate);
-  if (Number.isNaN(expiry.getTime())) return "Unknown expiry";
-  const now = new Date();
-  const diff = expiry.getTime() - now.getTime();
-  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-  if (days < 0) return `Expired ${Math.abs(days)}d ago`;
-  if (days === 0) return "Expires today";
-  return `Expires in ${days}d`;
-};
 
 export const CouponCard = ({ coupon, ctaLabel, onCtaClick, disabled }: CouponCardProps) => (
   <article className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">

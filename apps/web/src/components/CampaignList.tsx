@@ -1,28 +1,5 @@
 import type { Campaign } from "@/lib/types";
-
-const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
-
-const getStatus = (campaign: Campaign): "upcoming" | "past" | "ongoing" | "unknown" => {
-  const now = new Date();
-  const start = new Date(campaign.startDate);
-  const end = new Date(campaign.endDate);
-
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "unknown";
-  if (now < start) return "upcoming";
-  if (now > end) return "past";
-  return "ongoing";
-};
-
-const statusStyles: Record<string, string> = {
-  upcoming: "bg-sky-100 text-sky-700",
-  ongoing: "bg-emerald-100 text-emerald-700",
-  past: "bg-slate-100 text-slate-600",
-  unknown: "bg-slate-100 text-slate-600",
-};
+import { formatDate, getStatus, statusStyles } from "@/lib/campaignUtils";
 
 interface CampaignListProps {
   campaigns: Campaign[];
