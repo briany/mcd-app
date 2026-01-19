@@ -17,6 +17,25 @@ This monorepo contains three platform-specific applications that share core busi
 - **[MCDCore](packages/MCDCore/)** - Core business logic (models, services, view models)
 - **[MCDSharedUI](packages/MCDSharedUI/)** - Shared SwiftUI components
 
+## Screenshots
+
+See the MCD-App suite in action across all platforms:
+
+### Web Application
+<img src="docs/images/web/dashboard.png" width="800" alt="Web Dashboard">
+
+*Dashboard showing My Coupons, Available Coupons, and Campaign Radar*
+
+### macOS Application
+<img src="docs/images/macos/app-overview.png" width="600" alt="macOS App">
+
+*Native macOS app with SwiftUI interface*
+
+### iOS Application
+<img src="docs/images/ios/my-coupons.png" width="300" alt="iOS My Coupons">
+
+*iOS app showing coupon list with expiry tracking*
+
 ## Quick Start
 
 ### Prerequisites

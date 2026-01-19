@@ -8,24 +8,11 @@ A native iOS application for managing McDonald's China coupons and campaigns usi
 - **Campaigns**: Browse McDonald's marketing campaigns with date selection and filtering
 - **Available Coupons**: Discover and claim new coupons with one-tap "Claim All" functionality
 
-## Screenshots
+## Screenshot
 
-### My Coupons
-- View all claimed coupons
-- Color-coded expiry warnings (Red: < 3 days, Orange: < 7 days)
-- Days remaining until expiration
-- Refresh to update coupon list
+<img src="../../docs/images/ios/my-coupons.png" width="300" alt="iOS My Coupons">
 
-### Campaigns
-- Date picker to select campaign dates
-- Filter by status: All, Ongoing, Past, Upcoming
-- Search campaigns by title or description
-- View campaign details and subscription status
-
-### Available Coupons
-- Browse all claimable coupons
-- Claim all coupons at once
-- Automatic refresh after claiming
+*My Coupons view with expiry tracking and color-coded warnings (Red: <3 days, Orange: <7 days)*
 
 ## Requirements
 
