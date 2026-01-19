@@ -74,17 +74,7 @@ describe("config", () => {
       const { mcpConfig } = await import("@/lib/config");
 
       expect(mcpConfig.baseUrl).toBe("https://config.api.com");
-      expect(mcpConfig.endpoints).toBeDefined();
       expect(mcpConfig.authHeaders).toBeDefined();
-    });
-
-    it("provides endpoint helpers", async () => {
-      const { mcpConfig } = await import("@/lib/config");
-
-      expect(typeof mcpConfig.endpoints.coupons).toBe("function");
-      expect(typeof mcpConfig.endpoints.campaigns).toBe("function");
-      expect(typeof mcpConfig.endpoints.availableCoupons).toBe("function");
-      expect(typeof mcpConfig.endpoints.claimCoupon).toBe("function");
     });
 
     it("provides auth headers helper function", async () => {

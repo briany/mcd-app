@@ -27,6 +27,15 @@ export const createMockResponse = <T>(
     clone: function () {
       return this;
     },
+    redirected: false,
+    type: "basic",
+    url: "https://example.com",
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: async () => new ArrayBuffer(0),
+    blob: async () => new Blob(),
+    formData: async () => new FormData(),
+    bytes: async () => new Uint8Array(0),
   } as Response;
 };
 
@@ -55,6 +64,15 @@ export const mockFetchError = (
     clone: function () {
       return this;
     },
+    redirected: false,
+    type: "basic",
+    url: "https://example.com",
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: async () => new ArrayBuffer(0),
+    blob: async () => new Blob(),
+    formData: async () => new FormData(),
+    bytes: async () => new Uint8Array(0),
   } as Response;
 };
 
@@ -74,5 +92,67 @@ export const mockFetchNoContent = (): Response => {
     clone: function () {
       return this;
     },
+    redirected: false,
+    type: "basic",
+    url: "https://example.com",
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: async () => new ArrayBuffer(0),
+    blob: async () => new Blob(),
+    formData: async () => new FormData(),
+    bytes: async () => new Uint8Array(0),
   } as Response;
+};
+
+/**
+ * Creates a mock MCP JSON-RPC response with markdown content
+ */
+export const mockMcpMarkdownResponse = (markdown: string): Response => {
+  const mcpResponse = {
+    jsonrpc: "2.0",
+    id: 1,
+    result: {
+      content: [
+        {
+          type: "text",
+          text: markdown,
+        },
+      ],
+    },
+  };
+  return createMockResponse(mcpResponse);
+};
+
+/**
+ * Creates a mock MCP JSON-RPC response with structured data
+ */
+export const mockMcpStructuredResponse = <T>(data: T): Response => {
+  const mcpResponse = {
+    jsonrpc: "2.0",
+    id: 1,
+    result: {
+      structuredContent: {
+        success: true,
+        code: 200,
+        message: "Success",
+        data,
+      },
+    },
+  };
+  return createMockResponse(mcpResponse);
+};
+
+/**
+ * Creates a mock MCP JSON-RPC error response
+ */
+export const mockMcpErrorResponse = (code: number, message: string): Response => {
+  const mcpResponse = {
+    jsonrpc: "2.0",
+    id: 1,
+    error: {
+      code,
+      message,
+    },
+  };
+  return createMockResponse(mcpResponse);
 };

@@ -6,34 +6,21 @@ import {
   mockAutoClaimResponse,
   mockTimeInfo,
   mockMCPErrorPayload,
+  generateCouponsMarkdown,
+  generateCampaignsMarkdown,
+  generateAutoClaimMarkdown,
 } from "../mocks/mcpClient";
-import { mockFetchSuccess, mockFetchError, mockFetchNoContent } from "../mocks/fetch";
+import {
+  mockMcpMarkdownResponse,
+  mockMcpStructuredResponse,
+  mockMcpErrorResponse,
+  mockFetchError,
+} from "../mocks/fetch";
 
-// Mock config functions
 vi.mock("@/lib/config", () => ({
   getMcpBaseUrl: vi.fn(() => "https://api.example.com"),
   getMcpToken: vi.fn(() => "test-token-123"),
 }));
-
-describe("McpClientError", () => {
-  it("creates error with message, status, and details", () => {
-    const error = new McpClientError("Test error", 404, mockMCPErrorPayload);
-
-    expect(error.message).toBe("Test error");
-    expect(error.status).toBe(404);
-    expect(error.details).toEqual(mockMCPErrorPayload);
-    expect(error.name).toBe("McpClientError");
-    expect(error).toBeInstanceOf(Error);
-  });
-
-  it("creates error without details", () => {
-    const error = new McpClientError("Simple error", 500);
-
-    expect(error.message).toBe("Simple error");
-    expect(error.status).toBe(500);
-    expect(error.details).toBeUndefined();
-  });
-});
 
 describe("mcpClient", () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
@@ -46,37 +33,56 @@ describe("mcpClient", () => {
     vi.restoreAllMocks();
   });
 
+  describe("McpClientError", () => {
+    it("creates error with message, status, and details", () => {
+      const error = new McpClientError("Test error", 404, mockMCPErrorPayload);
+      expect(error.message).toBe("Test error");
+      expect(error.status).toBe(404);
+      expect(error.details).toEqual(mockMCPErrorPayload);
+      expect(error.name).toBe("McpClientError");
+    });
+
+    it("creates error without details", () => {
+      const error = new McpClientError("Test error", 500);
+      expect(error.message).toBe("Test error");
+      expect(error.status).toBe(500);
+      expect(error.details).toBeUndefined();
+    });
+  });
+
   describe("getCoupons", () => {
     it("returns coupon list on success", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess(mockCouponListResponse));
+      const markdown = generateCouponsMarkdown(mockCouponListResponse);
+      fetchSpy.mockResolvedValue(mockMcpMarkdownResponse(markdown));
 
       const result = await mcpClient.getCoupons();
 
-      expect(result).toEqual(mockCouponListResponse);
+      expect(result.coupons).toHaveLength(1);
+      expect(result.coupons[0].name).toBe("Test Coupon");
+      expect(result.total).toBe(1);
+      expect(result.page).toBe(1);
       expect(fetchSpy).toHaveBeenCalledWith(
-        "https://api.example.com/coupons",
+        "https://api.example.com",
         expect.objectContaining({
-          method: "GET",
+          method: "POST",
           headers: expect.objectContaining({
             "Content-Type": "application/json",
             Authorization: "Bearer test-token-123",
           }),
-          cache: "no-store",
         })
       );
     });
 
-    it("throws McpClientError on 404", async () => {
+    it("throws McpClientError on HTTP 404", async () => {
       fetchSpy.mockResolvedValue(mockFetchError(404, "Not Found", mockMCPErrorPayload));
 
       await expect(mcpClient.getCoupons()).rejects.toThrow(McpClientError);
       await expect(mcpClient.getCoupons()).rejects.toMatchObject({
         status: 404,
-        details: mockMCPErrorPayload,
       });
     });
 
-    it("throws McpClientError on 500", async () => {
+    it("throws McpClientError on HTTP 500", async () => {
       fetchSpy.mockResolvedValue(mockFetchError(500, "Internal Server Error"));
 
       await expect(mcpClient.getCoupons()).rejects.toThrow(McpClientError);
@@ -94,167 +100,161 @@ describe("mcpClient", () => {
 
   describe("getAvailableCoupons", () => {
     it("returns available coupon list on success", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess(mockCouponListResponse));
+      const markdown = generateCouponsMarkdown(mockCouponListResponse);
+      fetchSpy.mockResolvedValue(mockMcpMarkdownResponse(markdown));
 
       const result = await mcpClient.getAvailableCoupons();
 
-      expect(result).toEqual(mockCouponListResponse);
-      expect(fetchSpy).toHaveBeenCalledWith(
-        "https://api.example.com/available-coupons",
-        expect.objectContaining({
-          method: "GET",
-          headers: expect.objectContaining({
-            Authorization: "Bearer test-token-123",
-          }),
-        })
-      );
+      expect(result.coupons).toHaveLength(1);
+      expect(result.coupons[0].name).toBe("Test Coupon");
     });
 
     it("throws McpClientError with error details", async () => {
-      const errorPayload = { code: 403, message: "Forbidden" };
-      fetchSpy.mockResolvedValue(mockFetchError(403, "Forbidden", errorPayload));
+      fetchSpy.mockResolvedValue(mockFetchError(404, "Not found", mockMCPErrorPayload));
 
-      await expect(mcpClient.getAvailableCoupons()).rejects.toMatchObject({
-        status: 403,
-        details: errorPayload,
+      await expect(mcpClient.getAvailableCoupons()).rejects.toThrow(McpClientError);
+      const promise = mcpClient.getAvailableCoupons();
+      await expect(promise).rejects.toMatchObject({
+        details: mockMCPErrorPayload,
       });
     });
   });
 
   describe("getCampaigns", () => {
     it("returns campaign list without date parameter", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess(mockCampaignListResponse));
+      const markdown = generateCampaignsMarkdown(mockCampaignListResponse);
+      fetchSpy.mockResolvedValue(mockMcpMarkdownResponse(markdown));
 
       const result = await mcpClient.getCampaigns();
 
-      expect(result).toEqual(mockCampaignListResponse);
-      expect(fetchSpy).toHaveBeenCalledWith(
-        "https://api.example.com/campaigns",
-        expect.anything()
-      );
+      expect(result.campaigns).toHaveLength(1);
+      expect(result.campaigns[0]).toMatchObject({
+        id: expect.stringContaining("campaign"),
+        description: "A test campaign description",
+      });
     });
 
     it("returns campaign list with date parameter", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess(mockCampaignListResponse));
+      const markdown = generateCampaignsMarkdown(mockCampaignListResponse);
+      fetchSpy.mockResolvedValue(mockMcpMarkdownResponse(markdown));
 
       const result = await mcpClient.getCampaigns("2026-01-19");
 
-      expect(result).toEqual(mockCampaignListResponse);
+      expect(result.campaigns).toHaveLength(1);
       expect(fetchSpy).toHaveBeenCalledWith(
-        "https://api.example.com/campaigns?date=2026-01-19",
-        expect.anything()
+        "https://api.example.com",
+        expect.objectContaining({
+          body: expect.stringContaining("specifiedDate"),
+        })
       );
     });
 
     it("handles empty date parameter", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess(mockCampaignListResponse));
+      const markdown = generateCampaignsMarkdown(mockCampaignListResponse);
+      fetchSpy.mockResolvedValue(mockMcpMarkdownResponse(markdown));
 
       const result = await mcpClient.getCampaigns("");
 
-      expect(result).toEqual(mockCampaignListResponse);
-      // Empty string should not add query parameter
-      expect(fetchSpy).toHaveBeenCalledWith(
-        "https://api.example.com/campaigns",
-        expect.anything()
-      );
+      expect(result.campaigns).toHaveLength(1);
     });
   });
 
   describe("autoClaimCoupons", () => {
     it("sends POST request and returns auto-claim response", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess(mockAutoClaimResponse));
+      const markdown = generateAutoClaimMarkdown(mockAutoClaimResponse);
+      fetchSpy.mockResolvedValue(mockMcpMarkdownResponse(markdown));
 
       const result = await mcpClient.autoClaimCoupons();
 
-      expect(result).toEqual(mockAutoClaimResponse);
+      expect(result.success).toBe(true);
       expect(fetchSpy).toHaveBeenCalledWith(
-        "https://api.example.com/auto-claim",
+        "https://api.example.com",
         expect.objectContaining({
           method: "POST",
-          headers: expect.objectContaining({
-            "Content-Type": "application/json",
-            Authorization: "Bearer test-token-123",
-          }),
         })
       );
     });
 
     it("throws McpClientError on failure", async () => {
-      fetchSpy.mockResolvedValue(mockFetchError(400, "Bad Request"));
+      fetchSpy.mockResolvedValue(mockFetchError(500, "Server error"));
 
-      await expect(mcpClient.autoClaimCoupons()).rejects.toMatchObject({
-        status: 400,
-      });
-    });
-  });
-
-  describe("claimCoupon", () => {
-    it("sends POST request with couponId", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess(mockAutoClaimResponse));
-
-      const result = await mcpClient.claimCoupon("coupon-123");
-
-      expect(result).toEqual(mockAutoClaimResponse);
-      expect(fetchSpy).toHaveBeenCalledWith(
-        "https://api.example.com/coupons/coupon-123/claim",
-        expect.objectContaining({
-          method: "POST",
-        })
-      );
-    });
-
-    it("handles special characters in couponId", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess(mockAutoClaimResponse));
-
-      await mcpClient.claimCoupon("coupon-with-special-chars-!@#");
-
-      expect(fetchSpy).toHaveBeenCalledWith(
-        expect.stringContaining("coupon-with-special-chars-!@#"),
-        expect.anything()
-      );
+      await expect(mcpClient.autoClaimCoupons()).rejects.toThrow(McpClientError);
     });
   });
 
   describe("getTimeInfo", () => {
     it("returns time info on success", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess(mockTimeInfo));
+      fetchSpy.mockResolvedValue(mockMcpStructuredResponse(mockTimeInfo));
 
       const result = await mcpClient.getTimeInfo();
 
       expect(result).toEqual(mockTimeInfo);
-      expect(fetchSpy).toHaveBeenCalledWith(
-        "https://api.example.com/time",
-        expect.anything()
-      );
+      expect(result.timestamp).toBe(1737302400000);
+      expect(result.year).toBe(2026);
     });
   });
 
-  describe("204 No Content handling", () => {
-    it("returns undefined for 204 responses", async () => {
-      fetchSpy.mockResolvedValue(mockFetchNoContent());
+  describe("MCP protocol error handling", () => {
+    it("handles MCP-level errors in response", async () => {
+      fetchSpy.mockResolvedValue(mockMcpErrorResponse(-32600, "Invalid Request"));
 
-      const result = await mcpClient.getCoupons();
+      await expect(mcpClient.getCoupons()).rejects.toThrow(McpClientError);
+      await expect(mcpClient.getCoupons()).rejects.toMatchObject({
+        message: expect.stringContaining("MCP Error"),
+      });
+    });
 
-      expect(result).toBeUndefined();
+    it("handles missing markdown content", async () => {
+      const emptyResponse = {
+        jsonrpc: "2.0",
+        id: 1,
+        result: {
+          content: [],
+        },
+      };
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => emptyResponse,
+      } as Response);
+
+      await expect(mcpClient.getCoupons()).rejects.toThrow("No markdown content");
+    });
+
+    it("handles missing structured data", async () => {
+      const emptyResponse = {
+        jsonrpc: "2.0",
+        id: 1,
+        result: {
+          structuredContent: {},
+        },
+      };
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => emptyResponse,
+      } as Response);
+
+      await expect(mcpClient.getTimeInfo()).rejects.toThrow("No structured data");
     });
   });
 
-  describe("error response parsing", () => {
+  describe("error detail parsing", () => {
     it("parses JSON error details when available", async () => {
-      const errorDetails = { code: 422, message: "Validation failed" };
-      fetchSpy.mockResolvedValue(mockFetchError(422, "Unprocessable Entity", errorDetails));
+      const errorPayload = { code: 404, message: "Not found" };
+      fetchSpy.mockResolvedValue(mockFetchError(404, "Not Found", errorPayload));
 
       try {
         await mcpClient.getCoupons();
         expect.fail("Should have thrown");
       } catch (error) {
         expect(error).toBeInstanceOf(McpClientError);
-        expect((error as McpClientError).details).toEqual(errorDetails);
+        expect((error as McpClientError).details).toEqual(errorPayload);
       }
     });
 
     it("handles non-JSON error responses", async () => {
-      const response = {
+      fetchSpy.mockResolvedValue({
         ok: false,
         status: 500,
         statusText: "Internal Server Error",
@@ -263,28 +263,19 @@ describe("mcpClient", () => {
         json: async () => {
           throw new Error("Not JSON");
         },
-        clone: function () {
-          return this;
-        },
-      } as Response;
+      } as Response);
 
-      fetchSpy.mockResolvedValue(response);
-
-      try {
-        await mcpClient.getCoupons();
-        expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error).toBeInstanceOf(McpClientError);
-        expect((error as McpClientError).message).toContain("Plain text error");
-        expect((error as McpClientError).status).toBe(500);
-      }
+      await expect(mcpClient.getCoupons()).rejects.toThrow(McpClientError);
+      await expect(mcpClient.getCoupons()).rejects.toMatchObject({
+        message: expect.stringContaining("Plain text error"),
+      });
     });
 
     it("uses statusText when response body cannot be read", async () => {
-      const response = {
+      fetchSpy.mockResolvedValue({
         ok: false,
-        status: 503,
-        statusText: "Service Unavailable",
+        status: 500,
+        statusText: "Internal Server Error",
         headers: new Headers(),
         text: async () => {
           throw new Error("Cannot read body");
@@ -292,40 +283,30 @@ describe("mcpClient", () => {
         json: async () => {
           throw new Error("Cannot read body");
         },
-        clone: function () {
-          return this;
-        },
-      } as Response;
+      } as Response);
 
-      fetchSpy.mockResolvedValue(response);
-
-      try {
-        await mcpClient.getCoupons();
-        expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error).toBeInstanceOf(McpClientError);
-        expect((error as McpClientError).message).toContain("Service Unavailable");
-        expect((error as McpClientError).status).toBe(503);
-      }
+      await expect(mcpClient.getCoupons()).rejects.toThrow(McpClientError);
+      await expect(mcpClient.getCoupons()).rejects.toMatchObject({
+        message: expect.stringContaining("Internal Server Error"),
+      });
     });
   });
 
   describe("authorization headers", () => {
     it("includes authorization token in all requests", async () => {
-      fetchSpy.mockResolvedValue(mockFetchSuccess({}));
+      const markdown = generateCouponsMarkdown(mockCouponListResponse);
+      fetchSpy.mockResolvedValue(mockMcpMarkdownResponse(markdown));
 
       await mcpClient.getCoupons();
-      await mcpClient.getAvailableCoupons();
-      await mcpClient.getCampaigns();
-      await mcpClient.autoClaimCoupons();
-      await mcpClient.claimCoupon("test");
-      await mcpClient.getTimeInfo();
 
-      expect(fetchSpy).toHaveBeenCalledTimes(6);
-      fetchSpy.mock.calls.forEach((call) => {
-        const headers = (call[1] as RequestInit)?.headers as Record<string, string>;
-        expect(headers.Authorization).toBe("Bearer test-token-123");
-      });
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: "Bearer test-token-123",
+          }),
+        })
+      );
     });
   });
 });

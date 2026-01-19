@@ -20,7 +20,7 @@ vi.mock("@/lib/mcpClient", () => ({
     }
   },
   mcpClient: {
-    claimCoupon: vi.fn(),
+    autoClaimCoupons: vi.fn(),
   },
 }));
 
@@ -39,7 +39,7 @@ describe("POST /api/coupons/claim", () => {
   };
 
   it("claims coupon successfully with valid couponId", async () => {
-    vi.mocked(mcpClient.claimCoupon).mockResolvedValue(mockAutoClaimResponse);
+    vi.mocked(mcpClient.autoClaimCoupons).mockResolvedValue(mockAutoClaimResponse);
 
     const request = createRequest({ couponId: "coupon-123" });
     const response = await POST(request);
@@ -47,7 +47,7 @@ describe("POST /api/coupons/claim", () => {
 
     expect(response.status).toBe(200);
     expect(data).toEqual(mockAutoClaimResponse);
-    expect(mcpClient.claimCoupon).toHaveBeenCalledWith("coupon-123");
+    expect(mcpClient.autoClaimCoupons).toHaveBeenCalled();
   });
 
   it("returns 400 when couponId is missing", async () => {
@@ -57,7 +57,7 @@ describe("POST /api/coupons/claim", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ message: "couponId is required" });
-    expect(mcpClient.claimCoupon).not.toHaveBeenCalled();
+    expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
   it("returns 400 when couponId is null", async () => {
@@ -67,7 +67,7 @@ describe("POST /api/coupons/claim", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ message: "couponId is required" });
-    expect(mcpClient.claimCoupon).not.toHaveBeenCalled();
+    expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
   it("returns 400 when couponId is not a string", async () => {
@@ -77,7 +77,7 @@ describe("POST /api/coupons/claim", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ message: "couponId is required" });
-    expect(mcpClient.claimCoupon).not.toHaveBeenCalled();
+    expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
   it("returns 400 when couponId is an empty string", async () => {
@@ -87,7 +87,7 @@ describe("POST /api/coupons/claim", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ message: "couponId is required" });
-    expect(mcpClient.claimCoupon).not.toHaveBeenCalled();
+    expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
   it("returns 400 when couponId is an array", async () => {
@@ -97,7 +97,7 @@ describe("POST /api/coupons/claim", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ message: "couponId is required" });
-    expect(mcpClient.claimCoupon).not.toHaveBeenCalled();
+    expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
   it("returns 400 when couponId is an object", async () => {
@@ -107,11 +107,11 @@ describe("POST /api/coupons/claim", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ message: "couponId is required" });
-    expect(mcpClient.claimCoupon).not.toHaveBeenCalled();
+    expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
   it("handles McpClientError with 404 status", async () => {
-    vi.mocked(mcpClient.claimCoupon).mockRejectedValue(mock404Error());
+    vi.mocked(mcpClient.autoClaimCoupons).mockRejectedValue(mock404Error());
 
     const request = createRequest({ couponId: "nonexistent-coupon" });
     const response = await POST(request);
@@ -128,7 +128,7 @@ describe("POST /api/coupons/claim", () => {
   });
 
   it("handles McpClientError with 500 status", async () => {
-    vi.mocked(mcpClient.claimCoupon).mockRejectedValue(mock500Error());
+    vi.mocked(mcpClient.autoClaimCoupons).mockRejectedValue(mock500Error());
 
     const request = createRequest({ couponId: "coupon-123" });
     const response = await POST(request);
@@ -146,7 +146,7 @@ describe("POST /api/coupons/claim", () => {
 
   it("handles generic errors", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.mocked(mcpClient.claimCoupon).mockRejectedValue(new Error("Network failure"));
+    vi.mocked(mcpClient.autoClaimCoupons).mockRejectedValue(new Error("Network failure"));
 
     const request = createRequest({ couponId: "coupon-123" });
     const response = await POST(request);

@@ -116,3 +116,49 @@ export const mock500Error = (): McpClientError => {
 export const mockNetworkError = (): Error => {
   return new Error("Network error: Failed to fetch");
 };
+
+/**
+ * Generates markdown response for coupons (for MCP JSON-RPC testing)
+ */
+export const generateCouponsMarkdown = (response: CouponListResponse): string => {
+  const { coupons, total, page } = response;
+  let markdown = `# 我的优惠券\n\n共 ${total} 张，第 ${page}/1 页\n\n`;
+
+  coupons.forEach((coupon) => {
+    markdown += `## ${coupon.name}\n`;
+    if (coupon.imageUrl) {
+      markdown += `<img src="${coupon.imageUrl}"/>\n`;
+    }
+    markdown += `有效期: ${coupon.expiryDate}\n\n`;
+  });
+
+  return markdown;
+};
+
+/**
+ * Generates markdown response for campaigns (for MCP JSON-RPC testing)
+ */
+export const generateCampaignsMarkdown = (response: CampaignListResponse): string => {
+  const { campaigns } = response;
+  let markdown = `# 活动日历\n\n`;
+
+  campaigns.forEach((campaign) => {
+    markdown += `**活动标题**: ${campaign.title}\n`;
+    markdown += `**活动内容介绍**: ${campaign.description}\n`;
+    if (campaign.imageUrl) {
+      markdown += `<img src="${campaign.imageUrl}"/>\n`;
+    }
+    markdown += `\n`;
+  });
+
+  return markdown;
+};
+
+/**
+ * Generates markdown response for auto-claim (for MCP JSON-RPC testing)
+ */
+export const generateAutoClaimMarkdown = (response: AutoClaimResponse): string => {
+  return response.success
+    ? `成功领取 ${response.claimed} 张优惠券`
+    : `领取失败: ${response.message}`;
+};
