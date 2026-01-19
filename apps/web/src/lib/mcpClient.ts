@@ -32,14 +32,36 @@ interface MCPRequest {
 }
 
 /**
- * Make a JSON-RPC request to the MCP server
+ * MCP JSON-RPC response structure
+ */
+interface MCPResponse {
+  jsonrpc: string;
+  id: number;
+  result?: {
+    content?: Array<{ text?: string; type?: string }>;
+    isError?: boolean;
+    structuredContent?: {
+      success: boolean;
+      code: number;
+      message: string;
+      data?: unknown;
+    };
+  };
+  error?: {
+    code: number;
+    message: string;
+  };
+}
+
+/**
+ * Make a JSON-RPC request to the MCP server and return raw response
  * @param toolName The MCP tool name (e.g., "my-coupons", "available-coupons")
  * @param args Optional arguments for the tool
  */
-const callMcpTool = async <T>(
+const callMcpTool = async (
   toolName: string,
   args?: Record<string, unknown>
-): Promise<T> => {
+): Promise<MCPResponse> => {
   const body: MCPRequest = {
     method: "tools/call",
     params: {
@@ -66,14 +88,13 @@ const callMcpTool = async <T>(
       const text = await response.text();
       errorMessage = text || response.statusText;
 
-      // Try to parse as JSON for structured error details
       try {
         details = JSON.parse(text) as MCPErrorPayload;
       } catch {
-        // Not JSON, that's fine - we have the text for the error message
+        // Not JSON, use text
       }
     } catch {
-      // Couldn't read response body, use statusText
+      // Couldn't read response body
     }
 
     throw new McpClientError(
@@ -83,12 +104,120 @@ const callMcpTool = async <T>(
     );
   }
 
-  if (response.status === 204) {
-    // @ts-expect-error: returning void when T is void is acceptable for callers expecting no data
-    return undefined;
+  const mcpResponse = (await response.json()) as MCPResponse;
+
+  // Check for MCP-level errors
+  if (mcpResponse.error) {
+    throw new McpClientError(
+      `MCP Error ${mcpResponse.error.code}: ${mcpResponse.error.message}`,
+      500,
+      mcpResponse.error
+    );
   }
 
-  return (await response.json()) as T;
+  if (mcpResponse.result?.isError) {
+    throw new McpClientError("MCP request returned an error", 500);
+  }
+
+  return mcpResponse;
+};
+
+/**
+ * Extract markdown text from MCP response
+ */
+const extractMarkdown = (mcpResponse: MCPResponse): string => {
+  const text = mcpResponse.result?.content?.[0]?.text;
+  if (!text) {
+    throw new McpClientError("No markdown content in MCP response", 500);
+  }
+  return text;
+};
+
+/**
+ * Extract structured data from MCP response
+ */
+const extractStructuredData = <T>(mcpResponse: MCPResponse): T => {
+  const data = mcpResponse.result?.structuredContent?.data;
+  if (!data) {
+    throw new McpClientError("No structured data in MCP response", 500);
+  }
+  return data as T;
+};
+
+/**
+ * Simple markdown parser for coupons
+ */
+const parseCouponsMarkdown = (markdown: string): CouponListResponse => {
+  const coupons: CouponListResponse["coupons"] = [];
+
+  // Extract total and page info from header
+  const headerMatch = markdown.match(/共\s*(\d+)\s*张.*第\s*(\d+)\/\d+\s*页/);
+  const total = headerMatch ? parseInt(headerMatch[1], 10) : 0;
+  const page = headerMatch ? parseInt(headerMatch[2], 10) : 1;
+
+  // Split by ## headers (each coupon section)
+  const sections = markdown.split(/\n##\s+/).slice(1); // Skip first empty section
+
+  sections.forEach((section, index) => {
+    const lines = section.split("\n");
+    const name = lines[0].trim();
+
+    // Extract image URL
+    const imgMatch = section.match(/<img\s+src="([^"]+)"/);
+    const imageUrl = imgMatch ? imgMatch[1] : null;
+
+    // Extract expiry date from "有效期" line
+    const expiryMatch = section.match(/有效期[^:]*:\s*(\d{4}-\d{2}-\d{2})/);
+    const expiryDate = expiryMatch ? expiryMatch[1] : new Date().toISOString().split("T")[0];
+
+    coupons.push({
+      id: `coupon-${index}`,
+      name,
+      imageUrl,
+      expiryDate,
+      status: "active",
+    });
+  });
+
+  return { coupons, total, page };
+};
+
+/**
+ * Simple markdown parser for campaigns
+ */
+const parseCampaignsMarkdown = (markdown: string, date: string): CampaignListResponse => {
+  const campaigns: CampaignListResponse["campaigns"] = [];
+
+  // Split by campaign items (marked by "活动标题")
+  const sections = markdown.split(/(?=\*\*活动标题\*\*)/);
+
+  sections.forEach((section, index) => {
+    if (!section.includes("活动标题")) return;
+
+    // Extract title
+    const titleMatch = section.match(/\*\*活动标题\*\*[：:]\s*([^\\]+?)\\/);
+    const title = titleMatch ? titleMatch[1].trim() : `Campaign ${index}`;
+
+    // Extract description (first line after 活动内容介绍)
+    const descMatch = section.match(/\*\*活动内容介绍\*\*[：:]\s*([^\n]+)/);
+    const description = descMatch ? descMatch[1].trim() : "";
+
+    // Extract image URL
+    const imgMatch = section.match(/<img\s+src="([^"]+)"/);
+    const imageUrl = imgMatch ? imgMatch[1] : null;
+
+    campaigns.push({
+      id: `campaign-${index}`,
+      title,
+      description,
+      imageUrl,
+      startDate: date || new Date().toISOString().split("T")[0],
+      endDate: date || new Date().toISOString().split("T")[0],
+      isSubscribed: false,
+    });
+  });
+
+  return { campaigns, date: date || new Date().toISOString().split("T")[0] };
 };
 
 export const mcpClient = {
@@ -96,22 +225,32 @@ export const mcpClient = {
    * Get user's claimed coupons
    * Uses MCP tool: my-coupons
    */
-  getCoupons: () => callMcpTool<CouponListResponse>("my-coupons"),
+  getCoupons: async (): Promise<CouponListResponse> => {
+    const response = await callMcpTool("my-coupons");
+    const markdown = extractMarkdown(response);
+    return parseCouponsMarkdown(markdown);
+  },
 
   /**
    * Get available coupons that can be claimed
    * Uses MCP tool: available-coupons
    */
-  getAvailableCoupons: () => callMcpTool<CouponListResponse>("available-coupons"),
+  getAvailableCoupons: async (): Promise<CouponListResponse> => {
+    const response = await callMcpTool("available-coupons");
+    const markdown = extractMarkdown(response);
+    return parseCouponsMarkdown(markdown);
+  },
 
   /**
    * Get campaign calendar
    * Uses MCP tool: campaign-calender
    * @param date Optional date in yyyy-MM-dd format
    */
-  getCampaigns: (date?: string) => {
+  getCampaigns: async (date?: string): Promise<CampaignListResponse> => {
     const args = date ? { specifiedDate: date } : undefined;
-    return callMcpTool<CampaignListResponse>("campaign-calender", args);
+    const response = await callMcpTool("campaign-calender", args);
+    const markdown = extractMarkdown(response);
+    return parseCampaignsMarkdown(markdown, date || "");
   },
 
   /**
@@ -119,13 +258,26 @@ export const mcpClient = {
    * Uses MCP tool: auto-bind-coupons
    *
    * Note: MCP server only supports batch auto-claim, not individual coupon claiming.
-   * The Swift implementation also only has autoClaimCoupons, no single-claim method.
    */
-  autoClaimCoupons: () => callMcpTool<AutoClaimResponse>("auto-bind-coupons"),
+  autoClaimCoupons: async (): Promise<AutoClaimResponse> => {
+    const response = await callMcpTool("auto-bind-coupons");
+    const markdown = extractMarkdown(response);
+
+    // Simple success detection
+    const success = !markdown.includes("失败") && !markdown.includes("错误");
+    return {
+      success,
+      claimed: 0, // Can't reliably parse from markdown
+      message: markdown.substring(0, 200), // First 200 chars
+    };
+  },
 
   /**
    * Get current server time information
    * Uses MCP tool: now-time-info
    */
-  getTimeInfo: () => callMcpTool<TimeInfo>("now-time-info"),
+  getTimeInfo: async (): Promise<TimeInfo> => {
+    const response = await callMcpTool("now-time-info");
+    return extractStructuredData<TimeInfo>(response);
+  },
 };
