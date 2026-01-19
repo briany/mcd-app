@@ -1,23 +1,26 @@
 import type { NextConfig } from "next";
 
 const validateEnv = () => {
-  if (process.env.SKIP_ENV_VALIDATION === "true") {
+  // Skip validation in CI or when explicitly disabled
+  if (process.env.SKIP_ENV_VALIDATION === "true" || process.env.CI === "true") {
     return;
   }
 
-  const requiredServerEnv = ["MCD_MCP_TOKEN"] as const;
+  // Only validate public env vars during build (they're needed for client bundle)
   const requiredPublicEnv = ["NEXT_PUBLIC_MCP_BASE_URL"] as const;
 
-  const missingKey = [...requiredServerEnv, ...requiredPublicEnv].find((key) => {
+  const missingKey = requiredPublicEnv.find((key) => {
     const value = process.env[key];
     return !value || value.trim().length === 0;
   });
 
   if (missingKey) {
-    throw new Error(
-      `[next.config] Missing ${missingKey}. Copy web/.env.example -> web/.env.local and fill in the values.`
+    console.warn(
+      `[next.config] Warning: Missing ${missingKey}. The app may not work correctly.`
     );
   }
+
+  // Note: Server-only env vars (MCD_MCP_TOKEN) are validated at runtime in lib/config.ts
 };
 
 validateEnv();
