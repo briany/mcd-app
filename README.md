@@ -82,6 +82,43 @@ See [Architecture Overview](docs/architecture/overview.md) for system design and
 
 See [AGENTS.md](AGENTS.md) for development guidelines and coding standards.
 
+## Testing & CI
+
+The project includes comprehensive test coverage across all platforms:
+
+### Swift Packages
+- **MCDCore**: Unit tests for models, services, view models, and markdown parsing
+- **MCDSharedUI**: Component tests for SwiftUI views
+
+```bash
+# Test MCDCore
+swift test --package-path packages/MCDCore
+
+# Test MCDSharedUI
+swift test --package-path packages/MCDSharedUI
+```
+
+### Web App
+- **72 passing unit tests** using Vitest
+- **E2E tests** using Playwright
+- **Component tests** using Testing Library
+
+```bash
+cd apps/web
+npm test              # Unit tests
+npm run test:e2e      # E2E tests
+```
+
+### Continuous Integration
+
+GitHub Actions workflow runs on every push:
+- Tests all Swift packages (MCDCore, MCDSharedUI)
+- Builds iOS app (iPhone 17 Pro simulator)
+- Builds macOS app
+- Tests and builds web app (lint, unit tests, E2E, production build)
+
+All platforms must pass CI checks before merging.
+
 ## Project Structure
 
 ```

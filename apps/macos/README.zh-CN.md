@@ -4,6 +4,15 @@
 
 一个通过 MCP（模型上下文协议）API 管理麦当劳优惠券和营销活动的原生 macOS 应用程序。
 
+## 单体仓库结构
+
+此 macOS 应用是 mcd-app 单体仓库的一部分，通过 Swift Package Manager 包与 iOS 应用共享核心业务逻辑：
+
+- **MCDCore** (`../../packages/MCDCore`) - 共享模型、服务和视图模型
+- **MCDSharedUI** (`../../packages/MCDSharedUI`) - 共享 SwiftUI 组件
+
+这种架构实现了跨 Apple 平台的代码重用，同时保持平台特定的构建。
+
 ## 功能特性
 
 - **我的优惠券**: 查看和管理您可用的麦当劳优惠券
