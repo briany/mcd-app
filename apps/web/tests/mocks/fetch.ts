@@ -27,6 +27,15 @@ export const createMockResponse = <T>(
     clone: function () {
       return this;
     },
+    redirected: false,
+    type: "basic",
+    url: "https://example.com",
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: async () => new ArrayBuffer(0),
+    blob: async () => new Blob(),
+    formData: async () => new FormData(),
+    bytes: async () => new Uint8Array(0),
   } as Response;
 };
 
@@ -55,6 +64,15 @@ export const mockFetchError = (
     clone: function () {
       return this;
     },
+    redirected: false,
+    type: "basic",
+    url: "https://example.com",
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: async () => new ArrayBuffer(0),
+    blob: async () => new Blob(),
+    formData: async () => new FormData(),
+    bytes: async () => new Uint8Array(0),
   } as Response;
 };
 
@@ -74,6 +92,15 @@ export const mockFetchNoContent = (): Response => {
     clone: function () {
       return this;
     },
+    redirected: false,
+    type: "basic",
+    url: "https://example.com",
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: async () => new ArrayBuffer(0),
+    blob: async () => new Blob(),
+    formData: async () => new FormData(),
+    bytes: async () => new Uint8Array(0),
   } as Response;
 };
 
