@@ -24,6 +24,27 @@ validateEnv();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "mcd-portal-prod-cos1-1300270282.cos.ap-shanghai.myqcloud.com",
+        pathname: "/campaign/prod/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cms-cdn.mcd.cn",
+        pathname: "/img/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img.mcd.cn",
+        pathname: "/cms/**",
+      },
+    ],
+    // Disable image optimization to avoid private IP blocking in dev/VPN environments
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;
