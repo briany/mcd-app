@@ -91,7 +91,6 @@ describe("GET /api/campaigns", () => {
 
     const request = createRequest("https://example.com/api/campaigns?date=2026-12-31");
     const response = await GET(request);
-    const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(mcpClient.getCampaigns).toHaveBeenCalledWith("2026-12-31");
@@ -157,7 +156,6 @@ describe("GET /api/campaigns", () => {
     // URL with special characters in date
     const request = createRequest("https://example.com/api/campaigns?date=2026-01-19%20extra");
     const response = await GET(request);
-    const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(mcpClient.getCampaigns).toHaveBeenCalledWith("2026-01-19 extra");

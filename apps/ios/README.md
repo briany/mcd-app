@@ -1,8 +1,17 @@
 English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-# MCS-iOS - McDonald's MCP iOS App
+# MCD-iOS - McDonald's MCP iOS App
 
 A native iOS application for managing McDonald's China coupons and campaigns using the MCP (Model Context Protocol) server.
+
+## Monorepo Structure
+
+This iOS app is part of the mcd-app monorepo and shares core business logic with the macOS app through Swift Package Manager packages:
+
+- **MCDCore** (`../../packages/MCDCore`) - Shared models, services, and view models
+- **MCDSharedUI** (`../../packages/MCDSharedUI`) - Shared SwiftUI components
+
+This architecture enables code reuse across platforms while maintaining platform-specific UI implementations.
 
 ## Features
 
@@ -42,7 +51,7 @@ A native iOS application for managing McDonald's China coupons and campaigns usi
 
 ```bash
 git clone <repository-url>
-cd MCS-iOS
+cd MCD-iOS
 ```
 
 ### 2. Configure API Token
@@ -57,7 +66,7 @@ export MCD_MCP_TOKEN="your_token_here"
 
 #### Option 2: Config.plist File
 
-Create a `Config.plist` file in the `MCS-iOS/` directory:
+Create a `Config.plist` file in the `MCD-iOS/` directory:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -75,37 +84,31 @@ Create a `Config.plist` file in the `MCS-iOS/` directory:
 ### 3. Open and Build
 
 ```bash
-open MCS-iOS.xcodeproj
+open MCD-iOS.xcodeproj
 ```
 
 Select your target device or simulator, then build and run (⌘R).
 
 ## Architecture
 
-The app follows the **MVVM (Model-View-ViewModel)** architectural pattern with clear separation of concerns:
+The app follows the **MVVM (Model-View-ViewModel)** pattern with shared packages:
 
 ```
-MCS-iOS/
-├── MCSiOSApp.swift          # App entry point
-├── Config.swift              # Configuration management
-├── Models/                   # Data models
-│   ├── Coupon.swift
-│   ├── Campaign.swift
-│   └── MCPResponse.swift
-├── Services/                 # Networking layer
-│   ├── MCPClient.swift       # MCP API client
-│   ├── MCPError.swift        # Error handling
-│   └── MarkdownParser.swift  # Response parsing
-├── ViewModels/               # Business logic
-│   ├── CouponViewModel.swift
-│   └── CampaignViewModel.swift
-└── Views/                    # SwiftUI UI components
-    ├── ContentView.swift
-    ├── MyCouponsView.swift
-    ├── CampaignsView.swift
-    ├── AvailableCouponsView.swift
-    ├── CouponCardView.swift
-    └── CampaignCardView.swift
+MCD-iOS/
+├── MCD-iOS/
+│   ├── MCD_iOSApp.swift      # App entry point
+│   ├── Config.swift           # Configuration
+│   ├── ContentView.swift      # Tab navigation
+│   └── Views/
+│       └── CampaignsView.swift # Campaign-specific view
+│
+├── Dependencies (SPM):
+│   ├── MCDCore (../../packages/MCDCore)
+│   │   ├── Models/           # Coupon, Campaign, etc.
+│   │   ├── Services/         # MCPClient, MarkdownParser
+│   │   └── ViewModels/       # Business logic
+│   └── MCDSharedUI (../../packages/MCDSharedUI)
+│       └── Views/            # MyCouponsView, AvailableCouponsView, etc.
 ```
 
 ## Key Components
@@ -221,7 +224,7 @@ The app includes comprehensive test coverage for:
 
 Run tests with:
 ```bash
-xcodebuild test -scheme MCS-iOS -destination 'platform=iOS Simulator,name=iPhone 15'
+xcodebuild test -scheme MCD-iOS -destination 'platform=iOS Simulator,name=iPhone 15'
 ```
 
 ## Troubleshooting

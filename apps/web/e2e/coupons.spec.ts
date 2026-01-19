@@ -156,10 +156,8 @@ test.describe("Auto-claim Coupons", () => {
   test("auto-claim button is available on available coupons page", async ({ page }) => {
     await page.goto("/available");
 
-    // Verify auto-claim button exists
-    const autoClaimButton = page.getByRole("button", { name: /auto.*claim/i });
+    // Verify page loads successfully
     await page.waitForTimeout(500);
-    // Button should either be visible or the page should be loaded
     const pageLoaded = await page.locator("body").count() > 0;
     expect(pageLoaded).toBe(true);
   });

@@ -165,7 +165,7 @@ describe("CampaignList", () => {
         imageUrl: null,
       };
 
-      const { container } = render(<CampaignList campaigns={[ongoingCampaign]} />);
+      render(<CampaignList campaigns={[ongoingCampaign]} />);
       const badge = screen.getByText("ONGOING");
       expect(badge.className).toContain("bg-emerald-100");
       expect(badge.className).toContain("text-emerald-700");
@@ -182,7 +182,7 @@ describe("CampaignList", () => {
         imageUrl: null,
       };
 
-      const { container } = render(<CampaignList campaigns={[upcomingCampaign]} />);
+      render(<CampaignList campaigns={[upcomingCampaign]} />);
       const badge = screen.getByText("UPCOMING");
       expect(badge.className).toContain("bg-sky-100");
       expect(badge.className).toContain("text-sky-700");

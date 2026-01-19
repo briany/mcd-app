@@ -4,6 +4,15 @@ English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
 A native macOS application for managing McDonald's coupons and campaigns through the MCP (Model Context Protocol) API.
 
+## Monorepo Structure
+
+This macOS app is part of the mcd-app monorepo and shares core business logic with the iOS app through Swift Package Manager packages:
+
+- **MCDCore** (`../../packages/MCDCore`) - Shared models, services, and view models
+- **MCDSharedUI** (`../../packages/MCDSharedUI`) - Shared SwiftUI components
+
+This architecture enables code reuse across Apple platforms while maintaining platform-specific builds.
+
 ## Features
 
 - **My Coupons**: View and manage your available McDonald's coupons
@@ -59,31 +68,24 @@ This application follows the **MVVM (Model-View-ViewModel)** architecture patter
 ## Project Structure
 
 ```
-MCDApp/
-├── Package.swift           # Swift package manifest
-├── README.md              # This file
-├── MCDApp/                # Main application code
-│   ├── MCDApp.swift       # App entry point
-│   ├── Models/            # Data models
-│   │   ├── Coupon.swift
-│   │   ├── Campaign.swift
-│   │   └── TimeInfo.swift
-│   ├── Services/          # API client
-│   │   └── MCPClient.swift
-│   ├── ViewModels/        # Business logic
-│   │   ├── CouponViewModel.swift
-│   │   └── CampaignViewModel.swift
-│   └── Views/             # SwiftUI views
-│       ├── ContentView.swift
-│       ├── CouponListView.swift
-│       ├── CampaignCalendarView.swift
-│       └── AvailableCouponsView.swift
-└── MCDAppTests/           # Test suite
-    ├── ModelTests.swift
-    ├── MCPClientTests.swift
-    ├── ViewModelTests.swift
-    └── IntegrationTests.swift
+MCD-macOS/
+├── Package.swift              # SPM package manifest
+├── README.md                  # This file
+└── Sources/
+    └── MCDApp/
+        ├── MCDApp.swift       # App entry point
+        └── ContentView.swift  # Main view (tab navigation)
+
+Dependencies (SPM):
+├── MCDCore (../../packages/MCDCore)
+│   ├── Models/               # Coupon, Campaign, TimeInfo
+│   ├── Services/             # MCPClient, MarkdownParser, MCPError
+│   └── ViewModels/           # CouponViewModel, CampaignViewModel
+└── MCDSharedUI (../../packages/MCDSharedUI)
+    └── Views/                # MyCouponsView, AvailableCouponsView, etc.
 ```
+
+The shared packages contain all business logic and most UI, allowing the macOS app to focus on app configuration and platform integration.
 
 ## Configuration
 
