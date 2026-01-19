@@ -20,20 +20,41 @@ export class McpClientError extends Error {
   }
 }
 
-const withBase = (path: string): string => {
-  const url = new URL(path, getMcpBaseUrl());
-  return url.toString();
-};
+/**
+ * MCP JSON-RPC request body format
+ */
+interface MCPRequest {
+  method: "tools/call";
+  params: {
+    name: string;
+    arguments?: Record<string, unknown>;
+  };
+}
 
-const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
-  const response = await fetch(withBase(path), {
-    ...init,
-    method: init?.method ?? "GET",
+/**
+ * Make a JSON-RPC request to the MCP server
+ * @param toolName The MCP tool name (e.g., "my-coupons", "available-coupons")
+ * @param args Optional arguments for the tool
+ */
+const callMcpTool = async <T>(
+  toolName: string,
+  args?: Record<string, unknown>
+): Promise<T> => {
+  const body: MCPRequest = {
+    method: "tools/call",
+    params: {
+      name: toolName,
+      ...(args && Object.keys(args).length > 0 ? { arguments: args } : {}),
+    },
+  };
+
+  const response = await fetch(getMcpBaseUrl(), {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${getMcpToken()}`,
-      ...init?.headers,
     },
+    body: JSON.stringify(body),
     cache: "no-store",
   });
 
@@ -71,19 +92,40 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
 };
 
 export const mcpClient = {
-  getCoupons: () => request<CouponListResponse>("/coupons"),
-  getAvailableCoupons: () => request<CouponListResponse>("/available-coupons"),
+  /**
+   * Get user's claimed coupons
+   * Uses MCP tool: my-coupons
+   */
+  getCoupons: () => callMcpTool<CouponListResponse>("my-coupons"),
+
+  /**
+   * Get available coupons that can be claimed
+   * Uses MCP tool: available-coupons
+   */
+  getAvailableCoupons: () => callMcpTool<CouponListResponse>("available-coupons"),
+
+  /**
+   * Get campaign calendar
+   * Uses MCP tool: campaign-calender
+   * @param date Optional date in yyyy-MM-dd format
+   */
   getCampaigns: (date?: string) => {
-    const searchParams = new URLSearchParams();
-    if (date) {
-      searchParams.set("date", date);
-    }
-    const query = searchParams.toString();
-    const path = query ? `/campaigns?${query}` : "/campaigns";
-    return request<CampaignListResponse>(path);
+    const args = date ? { specifiedDate: date } : undefined;
+    return callMcpTool<CampaignListResponse>("campaign-calender", args);
   },
-  autoClaimCoupons: () => request<AutoClaimResponse>("/auto-claim", { method: "POST" }),
-  claimCoupon: (couponId: string) =>
-    request<AutoClaimResponse>(`/coupons/${couponId}/claim`, { method: "POST" }),
-  getTimeInfo: () => request<TimeInfo>("/time"),
+
+  /**
+   * Auto-claim all available coupons
+   * Uses MCP tool: auto-bind-coupons
+   *
+   * Note: MCP server only supports batch auto-claim, not individual coupon claiming.
+   * The Swift implementation also only has autoClaimCoupons, no single-claim method.
+   */
+  autoClaimCoupons: () => callMcpTool<AutoClaimResponse>("auto-bind-coupons"),
+
+  /**
+   * Get current server time information
+   * Uses MCP tool: now-time-info
+   */
+  getTimeInfo: () => callMcpTool<TimeInfo>("now-time-info"),
 };
