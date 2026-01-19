@@ -8,6 +8,12 @@ A native macOS application for managing McDonald's coupons and campaigns through
 - **Campaigns**: Browse current McDonald's marketing campaigns and calendar
 - **Available Coupons**: Discover and claim new coupons from McDonald's promotions
 
+## Screenshot
+
+<img src="../../docs/images/macos/app-overview.png" width="700" alt="macOS App">
+
+*Native macOS application showing the My Coupons view*
+
 ## Requirements
 
 - macOS 14.0 or later
