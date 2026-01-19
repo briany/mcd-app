@@ -63,6 +63,43 @@ npm run dev
 
 有关开发指南和编码标准，请参阅 [AGENTS.md](AGENTS.md)。
 
+## 测试与 CI
+
+项目包含跨所有平台的全面测试覆盖：
+
+### Swift 包
+- **MCDCore**: 模型、服务、视图模型和 Markdown 解析的单元测试
+- **MCDSharedUI**: SwiftUI 视图的组件测试
+
+```bash
+# 测试 MCDCore
+swift test --package-path packages/MCDCore
+
+# 测试 MCDSharedUI
+swift test --package-path packages/MCDSharedUI
+```
+
+### Web 应用
+- **72 个通过的单元测试**，使用 Vitest
+- **E2E 测试**，使用 Playwright
+- **组件测试**，使用 Testing Library
+
+```bash
+cd apps/web
+npm test              # 单元测试
+npm run test:e2e      # E2E 测试
+```
+
+### 持续集成
+
+GitHub Actions 工作流在每次推送时运行：
+- 测试所有 Swift 包（MCDCore、MCDSharedUI）
+- 构建 iOS 应用（iPhone 17 Pro 模拟器）
+- 构建 macOS 应用
+- 测试和构建 Web 应用（lint、单元测试、E2E、生产构建）
+
+所有平台必须通过 CI 检查才能合并。
+
 ## 项目结构
 
 ```

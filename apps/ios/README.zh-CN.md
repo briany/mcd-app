@@ -1,8 +1,17 @@
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md)
 
-# MCS-iOS - 麦当劳 MCP iOS 应用
+# MCD-iOS - 麦当劳 MCP iOS 应用
 
 一个使用 MCP（模型上下文协议）服务器管理麦当劳中国优惠券和营销活动的原生 iOS 应用程序。
+
+## 单体仓库结构
+
+此 iOS 应用是 mcd-app 单体仓库的一部分，通过 Swift Package Manager 包与 macOS 应用共享核心业务逻辑：
+
+- **MCDCore** (`../../packages/MCDCore`) - 共享模型、服务和视图模型
+- **MCDSharedUI** (`../../packages/MCDSharedUI`) - 共享 SwiftUI 组件
+
+这种架构实现了跨平台的代码重用，同时保持平台特定的 UI 实现。
 
 ## 功能特性
 
@@ -42,7 +51,7 @@
 
 ```bash
 git clone <repository-url>
-cd MCS-iOS
+cd MCD-iOS
 ```
 
 ### 2. 配置 API 令牌
@@ -57,7 +66,7 @@ export MCD_MCP_TOKEN="your_token_here"
 
 #### 选项 2：Config.plist 文件
 
-在 `MCS-iOS/` 目录中创建 `Config.plist` 文件：
+在 `MCD-iOS/` 目录中创建 `Config.plist` 文件：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -75,7 +84,7 @@ export MCD_MCP_TOKEN="your_token_here"
 ### 3. 打开并构建
 
 ```bash
-open MCS-iOS.xcodeproj
+open MCD-iOS.xcodeproj
 ```
 
 选择您的目标设备或模拟器，然后构建并运行（⌘R）。
@@ -85,7 +94,7 @@ open MCS-iOS.xcodeproj
 该应用遵循 **MVVM（Model-View-ViewModel）** 架构模式，具有清晰的关注点分离：
 
 ```
-MCS-iOS/
+MCD-iOS/
 ├── MCSiOSApp.swift          # 应用入口点
 ├── Config.swift              # 配置管理
 ├── Models/                   # 数据模型
@@ -221,7 +230,7 @@ https://mcp.mcd.cn/mcp-servers/mcd-mcp
 
 运行测试：
 ```bash
-xcodebuild test -scheme MCS-iOS -destination 'platform=iOS Simulator,name=iPhone 15'
+xcodebuild test -scheme MCD-iOS -destination 'platform=iOS Simulator,name=iPhone 15'
 ```
 
 ## 故障排除
