@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
+
 # MCD-App Monorepo
 
 A multi-platform McDonald's MCP (Model Context Protocol) client application suite with shared Swift packages.

@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
+
 # McDonald's MCP macOS App
 
 A native macOS application for managing McDonald's coupons and campaigns through the MCP (Model Context Protocol) API.

@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
+
 # MCS-iOS - McDonald's MCP iOS App
 
 A native iOS application for managing McDonald's China coupons and campaigns using the MCP (Model Context Protocol) server.

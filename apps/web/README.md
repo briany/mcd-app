@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
+
 This Next.js workspace mirrors the functionality of the macOS and iOS MCP clients, providing a browser UI for coupons, campaigns, and discovery flows.
 
 ## Screenshot
