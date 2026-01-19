@@ -39,15 +39,24 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
 
   if (!response.ok) {
     let details: MCPErrorPayload | undefined;
+    let errorMessage = response.statusText;
+
     try {
-      details = (await response.json()) as MCPErrorPayload;
+      const text = await response.text();
+      errorMessage = text || response.statusText;
+
+      // Try to parse as JSON for structured error details
+      try {
+        details = JSON.parse(text) as MCPErrorPayload;
+      } catch {
+        // Not JSON, that's fine - we have the text for the error message
+      }
     } catch {
-      // ignore body parsing errors; response text is surfaced via message
+      // Couldn't read response body, use statusText
     }
 
-    const text = await response.text();
     throw new McpClientError(
-      `MCP request failed (${response.status}): ${text || response.statusText}`,
+      `MCP request failed (${response.status}): ${errorMessage}`,
       response.status,
       details
     );
