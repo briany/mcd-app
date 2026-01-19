@@ -76,3 +76,56 @@ export const mockFetchNoContent = (): Response => {
     },
   } as Response;
 };
+
+/**
+ * Creates a mock MCP JSON-RPC response with markdown content
+ */
+export const mockMcpMarkdownResponse = (markdown: string): Response => {
+  const mcpResponse = {
+    jsonrpc: "2.0",
+    id: 1,
+    result: {
+      content: [
+        {
+          type: "text",
+          text: markdown,
+        },
+      ],
+    },
+  };
+  return createMockResponse(mcpResponse);
+};
+
+/**
+ * Creates a mock MCP JSON-RPC response with structured data
+ */
+export const mockMcpStructuredResponse = <T>(data: T): Response => {
+  const mcpResponse = {
+    jsonrpc: "2.0",
+    id: 1,
+    result: {
+      structuredContent: {
+        success: true,
+        code: 200,
+        message: "Success",
+        data,
+      },
+    },
+  };
+  return createMockResponse(mcpResponse);
+};
+
+/**
+ * Creates a mock MCP JSON-RPC error response
+ */
+export const mockMcpErrorResponse = (code: number, message: string): Response => {
+  const mcpResponse = {
+    jsonrpc: "2.0",
+    id: 1,
+    error: {
+      code,
+      message,
+    },
+  };
+  return createMockResponse(mcpResponse);
+};
