@@ -30,6 +30,8 @@ jobs:
     needs: [test-core-package, test-shared-ui-package]
     steps:
       - uses: actions/checkout@v4
+      - name: Create Config.plist for build
+        run: cp apps/macos/Config.plist.example apps/macos/MCD-macOS/MCDApp/Config.plist
       - name: Build macOS app
         run: swift build --package-path apps/macos/MCD-macOS
 
@@ -38,6 +40,8 @@ jobs:
     needs: [test-core-package, test-shared-ui-package]
     steps:
       - uses: actions/checkout@v4
+      - name: Create Config.plist for build
+        run: cp apps/ios/Config.plist.example apps/ios/MCD-iOS/Config.plist
       - name: Build iOS app
         run: xcodebuild build -project apps/ios/MCD-iOS/MCD-iOS.xcodeproj -scheme MCD-iOS -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
@@ -63,6 +67,8 @@ jobs:
         run: npx playwright install --with-deps
       - name: Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_MCP_BASE_URL: https://mcp.mcd.cn/mcp-servers/mcd-mcp
       - name: E2E tests
         run: |
           npm run start -- --hostname 127.0.0.1 --port 3000 &
@@ -70,3 +76,6 @@ jobs:
           npx wait-on http://127.0.0.1:3000
           npm run test:e2e
           kill $SERVER_PID
+        env:
+          NEXT_PUBLIC_MCP_BASE_URL: https://mcp.mcd.cn/mcp-servers/mcd-mcp
+          MCD_MCP_TOKEN: dummy-token-for-e2e-tests

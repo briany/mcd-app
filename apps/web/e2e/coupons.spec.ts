@@ -38,6 +38,6 @@ test("dashboard renders summary cards", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Mission Control" })).toBeVisible();
-  await expect(page.getByText("My Coupons")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "My Coupons" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Manage all" })).toBeVisible();
 });

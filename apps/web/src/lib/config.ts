@@ -22,14 +22,14 @@ export const getMcpBaseUrl = (): string =>
 
 export const getMcpToken = (): string => requiredEnv("MCD_MCP_TOKEN");
 
+/**
+ * MCP configuration
+ *
+ * Note: mcpClient now uses JSON-RPC protocol directly.
+ * These endpoint helpers are deprecated but kept for reference.
+ */
 export const mcpConfig = {
   baseUrl: getMcpBaseUrl(),
-  endpoints: {
-    coupons: () => `${getMcpBaseUrl()}/coupons`,
-    campaigns: () => `${getMcpBaseUrl()}/campaigns`,
-    availableCoupons: () => `${getMcpBaseUrl()}/available-coupons`,
-    claimCoupon: (couponId: string) => `${getMcpBaseUrl()}/coupons/${couponId}/claim`,
-  },
   authHeaders: () => ({
     Authorization: `Bearer ${getMcpToken()}`,
   }),
