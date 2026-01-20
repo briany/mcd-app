@@ -13,7 +13,7 @@ export const POST = withRateLimit(
       async (request: NextRequest) => {
         try {
           // Check authentication
-          const { error } = await requireAuth(request);
+          const { error } = await requireAuth();
           if (error) return error;
 
           const result = await mcpClient.autoClaimCoupons();

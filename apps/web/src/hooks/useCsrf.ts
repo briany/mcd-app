@@ -21,7 +21,7 @@ export function useCsrf() {
     refetchInterval: 1000 * 60 * 60, // Refresh every hour
   });
 
-  const getCsrfHeaders = () => {
+  const getCsrfHeaders = (): Record<string, string> => {
     if (!token) return {};
     return { [CSRF_TOKEN_HEADER]: token };
   };
