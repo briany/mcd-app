@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
 import { withRateLimit } from "@/lib/withRateLimit";
+import { validateBody, claimCouponSchema } from "@/lib/validation";
 
 /**
  * Claim coupon endpoint
@@ -13,10 +14,8 @@ import { withRateLimit } from "@/lib/withRateLimit";
  */
 export const POST = withRateLimit(async (request: NextRequest) => {
   try {
-    const { couponId } = await request.json();
-    if (!couponId || typeof couponId !== "string") {
-      return NextResponse.json({ message: "couponId is required" }, { status: 400 });
-    }
+    const { data, error } = await validateBody(request, claimCouponSchema);
+    if (error) return error;
 
     // MCP server only supports auto-claim, not single-claim
     // Trigger auto-claim for all available coupons
