@@ -4,8 +4,9 @@ import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
 import { requireAuth } from "@/lib/authHelpers";
 import { withCsrf } from "@/lib/withCsrf";
+import { withRateLimit } from "@/lib/withRateLimit";
 
-export const POST = withCsrf(async () => {
+export const POST = withRateLimit(withCsrf(async () => {
   try {
     // Check authentication
     const { error } = await requireAuth();
@@ -16,4 +17,4 @@ export const POST = withCsrf(async () => {
   } catch (error) {
     return handleApiError(error);
   }
-});
+}), "autoClaim");

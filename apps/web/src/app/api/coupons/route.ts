@@ -3,10 +3,11 @@ import { NextResponse } from "next/server";
 import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
 import { requireAuth } from "@/lib/authHelpers";
+import { withRateLimit } from "@/lib/withRateLimit";
 
 export const revalidate = 0;
 
-export const GET = async () => {
+export const GET = withRateLimit(async () => {
   try {
     // Check authentication
     const { error } = await requireAuth();
@@ -17,4 +18,4 @@ export const GET = async () => {
   } catch (error) {
     return handleApiError(error);
   }
-};
+}, "api");

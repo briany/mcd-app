@@ -30,6 +30,13 @@ export const useAvailableCoupons = () => {
         headers: getCsrfHeaders(),
       });
 
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After");
+        throw new Error(
+          `Too many requests. Please try again in ${retryAfter} seconds.`
+        );
+      }
+
       if (!response.ok) {
         const message = await response.text();
         throw new Error(message || `Failed to auto-claim coupons (${response.status})`);
@@ -54,6 +61,13 @@ export const useAvailableCoupons = () => {
         },
         body: JSON.stringify({ couponId }),
       });
+
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After");
+        throw new Error(
+          `Too many requests. Please try again in ${retryAfter} seconds.`
+        );
+      }
 
       if (!response.ok) {
         const message = await response.text();

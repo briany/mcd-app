@@ -4,6 +4,8 @@ import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
 import { requireAuth } from "@/lib/authHelpers";
 import { withCsrf } from "@/lib/withCsrf";
+import { withRateLimit } from "@/lib/withRateLimit";
+import { validateBody, claimCouponSchema } from "@/lib/validation";
 
 /**
  * Claim coupon endpoint
@@ -12,16 +14,15 @@ import { withCsrf } from "@/lib/withCsrf";
  * This endpoint triggers auto-claim for all available coupons regardless of the couponId.
  * This maintains UI compatibility but the behavior is to claim all, not just one.
  */
-export const POST = withCsrf(async (request: NextRequest) => {
+export const POST = withRateLimit(withCsrf(async (request: NextRequest) => {
   try {
     // Check authentication
-    const { error } = await requireAuth();
-    if (error) return error;
+    const { error: authError } = await requireAuth();
+    if (authError) return authError;
 
-    const { couponId } = await request.json();
-    if (!couponId || typeof couponId !== "string") {
-      return NextResponse.json({ message: "couponId is required" }, { status: 400 });
-    }
+    // Validate request body
+    const { error: validationError } = await validateBody(request, claimCouponSchema);
+    if (validationError) return validationError;
 
     // MCP server only supports auto-claim, not single-claim
     // Trigger auto-claim for all available coupons
@@ -30,4 +31,4 @@ export const POST = withCsrf(async (request: NextRequest) => {
   } catch (error) {
     return handleApiError(error);
   }
-});
+}), "write");
