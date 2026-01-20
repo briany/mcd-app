@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,22 @@ const NAV_ITEMS = [
 
 export const SidebarNav = () => {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      // Call custom logout endpoint to clear CSRF
+      await fetch("/api/auth/logout", { method: "POST" });
+
+      // Then sign out with NextAuth
+      await signOut({ redirect: false });
+
+      // Redirect to signin
+      router.push("/auth/signin");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <aside className="flex w-64 flex-col border-r border-slate-800 bg-slate-900/70 p-6">
@@ -42,7 +59,16 @@ export const SidebarNav = () => {
           );
         })}
       </nav>
-      <p className="mt-6 text-xs text-slate-400">
+
+      {/* Logout button */}
+      <button
+        onClick={handleLogout}
+        className="mb-4 rounded-md px-3 py-2 text-sm font-medium text-slate-100 transition hover:bg-slate-800/70 hover:text-white text-left"
+      >
+        Sign Out
+      </button>
+
+      <p className="text-xs text-slate-400">
         Token sourced from Config.plist or MCD_MCP_TOKEN env. Keep it secret.
       </p>
     </aside>

@@ -7,6 +7,29 @@ vi.mock("@/lib/config", () => ({
   getMcpToken: vi.fn(() => "test-token-123"),
 }));
 
+vi.mock("@/lib/authHelpers", () => ({
+  requireAuth: vi.fn(() =>
+    Promise.resolve({
+      error: null,
+      session: { user: { id: "1", name: "Test User" } },
+    })
+  ),
+}));
+
+vi.mock("@/lib/ratelimit", () => ({
+  rateLimiters: {
+    api: {
+      limit: vi.fn(async () => ({
+        success: true,
+        limit: 100,
+        remaining: 99,
+        reset: Date.now() + 60000,
+      })),
+    },
+  },
+  getRateLimitIdentifier: vi.fn(() => "ip:127.0.0.1"),
+}));
+
 vi.mock("@/lib/mcpClient", () => ({
   McpClientError: class McpClientError extends Error {
     constructor(
@@ -68,10 +91,13 @@ describe("GET /api/campaigns", () => {
     const response = await GET(request);
     const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(data).toEqual(mockCampaignListResponse);
-    // Empty string should be converted to undefined by the route
-    expect(mcpClient.getCampaigns).toHaveBeenCalledWith("");
+    expect(response.status).toBe(400);
+    expect(data.message).toBe("Validation failed");
+    expect(data.errors).toContainEqual({
+      path: "date",
+      message: "Invalid date format. Use yyyy-MM-dd",
+    });
+    expect(mcpClient.getCampaigns).not.toHaveBeenCalled();
   });
 
   it("handles multiple query parameters", async () => {
@@ -151,8 +177,14 @@ describe("GET /api/campaigns", () => {
     // URL with special characters in date
     const request = createRequest("https://example.com/api/campaigns?date=2026-01-19%20extra");
     const response = await GET(request);
+    const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(mcpClient.getCampaigns).toHaveBeenCalledWith("2026-01-19 extra");
+    expect(response.status).toBe(400);
+    expect(data.message).toBe("Validation failed");
+    expect(data.errors).toContainEqual({
+      path: "date",
+      message: "Invalid date format. Use yyyy-MM-dd",
+    });
+    expect(mcpClient.getCampaigns).not.toHaveBeenCalled();
   });
 });

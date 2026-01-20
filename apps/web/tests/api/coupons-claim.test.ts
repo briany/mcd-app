@@ -8,6 +8,33 @@ vi.mock("@/lib/config", () => ({
   getMcpToken: vi.fn(() => "test-token-123"),
 }));
 
+vi.mock("@/lib/authHelpers", () => ({
+  requireAuth: vi.fn(() =>
+    Promise.resolve({
+      error: null,
+      session: { user: { id: "1", name: "Test User" } },
+    })
+  ),
+}));
+
+vi.mock("@/lib/withCsrf", () => ({
+  withCsrf: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
+}));
+
+vi.mock("@/lib/ratelimit", () => ({
+  rateLimiters: {
+    write: {
+      limit: vi.fn(async () => ({
+        success: true,
+        limit: 10,
+        remaining: 9,
+        reset: Date.now() + 60000,
+      })),
+    },
+  },
+  getRateLimitIdentifier: vi.fn(() => "ip:127.0.0.1"),
+}));
+
 vi.mock("@/lib/mcpClient", () => ({
   McpClientError: class McpClientError extends Error {
     constructor(
@@ -56,7 +83,15 @@ describe("POST /api/coupons/claim", () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data).toEqual({ message: "couponId is required" });
+    expect(data).toEqual({
+      message: "Validation failed",
+      errors: [
+        {
+          path: "couponId",
+          message: "Invalid input: expected string, received undefined",
+        },
+      ],
+    });
     expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
@@ -66,7 +101,15 @@ describe("POST /api/coupons/claim", () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data).toEqual({ message: "couponId is required" });
+    expect(data).toEqual({
+      message: "Validation failed",
+      errors: [
+        {
+          path: "couponId",
+          message: "Invalid input: expected string, received null",
+        },
+      ],
+    });
     expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
@@ -76,7 +119,15 @@ describe("POST /api/coupons/claim", () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data).toEqual({ message: "couponId is required" });
+    expect(data).toEqual({
+      message: "Validation failed",
+      errors: [
+        {
+          path: "couponId",
+          message: "Invalid input: expected string, received number",
+        },
+      ],
+    });
     expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
@@ -86,7 +137,11 @@ describe("POST /api/coupons/claim", () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data).toEqual({ message: "couponId is required" });
+    expect(data.message).toBe("Validation failed");
+    expect(data.errors).toContainEqual({
+      path: "couponId",
+      message: "Coupon ID is required",
+    });
     expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
@@ -96,7 +151,15 @@ describe("POST /api/coupons/claim", () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data).toEqual({ message: "couponId is required" });
+    expect(data).toEqual({
+      message: "Validation failed",
+      errors: [
+        {
+          path: "couponId",
+          message: "Invalid input: expected string, received array",
+        },
+      ],
+    });
     expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
@@ -106,7 +169,15 @@ describe("POST /api/coupons/claim", () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data).toEqual({ message: "couponId is required" });
+    expect(data).toEqual({
+      message: "Validation failed",
+      errors: [
+        {
+          path: "couponId",
+          message: "Invalid input: expected string, received object",
+        },
+      ],
+    });
     expect(mcpClient.autoClaimCoupons).not.toHaveBeenCalled();
   });
 
@@ -166,15 +237,12 @@ describe("POST /api/coupons/claim", () => {
       },
     } as NextRequest;
 
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
     expect(data).toEqual({
-      message: "An unexpected error occurred",
+      message: "Invalid request body",
     });
-
-    consoleErrorSpy.mockRestore();
   });
 });

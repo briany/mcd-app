@@ -1,3 +1,4 @@
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -13,66 +14,74 @@ function setCorsHeaders(response: NextResponse, origin: string | null) {
   }
 }
 
-/**
- * Security headers middleware
- * Adds security headers to all responses
- */
-export function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-  const origin = request.headers.get("origin");
+export default withAuth(
+  function middleware(req: NextRequest) {
+    const response = NextResponse.next();
+    const origin = req.headers.get("origin");
 
-  setCorsHeaders(response, origin);
+    // CORS headers
+    setCorsHeaders(response, origin);
 
-  // Prevent clickjacking attacks
-  response.headers.set("X-Frame-Options", "DENY");
+    // Security Headers
 
-  // Prevent MIME type sniffing
-  response.headers.set("X-Content-Type-Options", "nosniff");
+    // Prevent clickjacking
+    response.headers.set("X-Frame-Options", "DENY");
 
-  // Control referrer information
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    // Prevent MIME sniffing
+    response.headers.set("X-Content-Type-Options", "nosniff");
 
-  // Restrict browser features (permissions policy)
-  response.headers.set(
-    "Permissions-Policy",
-    "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
-  );
+    // Control referrer information
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
-  // Content Security Policy
-  const csp = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Note: unsafe-* needed for Next.js dev
-    "style-src 'self' 'unsafe-inline'", // Needed for Next.js styles
-    "img-src 'self' https://mcd-portal-prod-cos1-1300270282.cos.ap-shanghai.myqcloud.com https://cms-cdn.mcd.cn https://img.mcd.cn data:",
-    "font-src 'self' data:",
-    "connect-src 'self'",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ].join("; ");
-  response.headers.set("Content-Security-Policy", csp);
-
-  // HSTS (only for HTTPS)
-  if (request.nextUrl.protocol === "https:") {
+    // Restrict browser features
     response.headers.set(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains"
+      "Permissions-Policy",
+      "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
     );
+
+    // Content Security Policy
+    const csp = [
+      "default-src 'self'",
+      // Allow unsafe-eval and unsafe-inline for Next.js development
+      process.env.NODE_ENV === "production"
+        ? "script-src 'self'"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      process.env.NODE_ENV === "production"
+        ? "style-src 'self'"
+        : "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' https://mcd-portal-prod-cos1-1300270282.cos.ap-shanghai.myqcloud.com https://cms-cdn.mcd.cn https://img.mcd.cn data:",
+      "font-src 'self' data:",
+      "connect-src 'self'",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ");
+    response.headers.set("Content-Security-Policy", csp);
+
+    // HSTS (only for HTTPS)
+    if (req.nextUrl.protocol === "https:") {
+      response.headers.set(
+        "Strict-Transport-Security",
+        "max-age=31536000; includeSubDomains; preload"
+      );
+    }
+
+    return response;
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
   }
+);
 
-  return response;
-}
-
-// Apply middleware to all routes except static files
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder files
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\..*|public).*)",
+    // Protect all API routes except auth endpoints
+    "/api/coupons/:path*",
+    "/api/available-coupons/:path*",
+    "/api/campaigns/:path*",
+    // Protect all pages except auth pages, static files, and public assets
+    "/((?!api/auth|auth|_next/static|_next/image|favicon.ico).*)",
   ],
 };
