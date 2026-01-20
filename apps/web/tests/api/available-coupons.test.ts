@@ -58,12 +58,8 @@ describe("GET /api/available-coupons", () => {
     const data = await response.json();
 
     expect(response.status).toBe(404);
-    expect(data).toMatchObject({
-      message: expect.stringContaining("Not found"),
-      details: {
-        code: 404,
-        message: "Resource not found",
-      },
+    expect(data).toEqual({
+      message: "An error occurred while processing your request",
     });
   });
 
@@ -74,12 +70,8 @@ describe("GET /api/available-coupons", () => {
     const data = await response.json();
 
     expect(response.status).toBe(500);
-    expect(data).toMatchObject({
-      message: expect.any(String),
-      details: {
-        code: 500,
-        message: "Internal server error",
-      },
+    expect(data).toEqual({
+      message: "An error occurred while processing your request",
     });
   });
 
@@ -92,11 +84,14 @@ describe("GET /api/available-coupons", () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({
-      message: "Unexpected MCP API error",
+      message: "An unexpected error occurred",
     });
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Unexpected MCP API error",
-      expect.any(Error)
+      "[API Error]",
+      expect.objectContaining({
+        error: expect.any(Error),
+        timestamp: expect.any(String),
+      })
     );
 
     consoleErrorSpy.mockRestore();
@@ -111,7 +106,7 @@ describe("GET /api/available-coupons", () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({
-      message: "Unexpected MCP API error",
+      message: "An unexpected error occurred",
     });
 
     consoleErrorSpy.mockRestore();

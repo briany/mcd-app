@@ -2,9 +2,25 @@ import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://mcd-app.example.com", // Replace with actual production domain
+];
+
+function setCorsHeaders(response: NextResponse, origin: string | null) {
+  if (origin && allowedOrigins.includes(origin)) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+  }
+}
+
 export default withAuth(
   function middleware(req: NextRequest) {
     const response = NextResponse.next();
+    const origin = req.headers.get("origin");
+
+    // CORS headers
+    setCorsHeaders(response, origin);
 
     // Security Headers
 
@@ -20,17 +36,19 @@ export default withAuth(
     // Restrict browser features
     response.headers.set(
       "Permissions-Policy",
-      "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+      "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
     );
 
     // Content Security Policy
     const csp = [
       "default-src 'self'",
-      // Allow unsafe-eval in development for HMR (Hot Module Replacement)
+      // Allow unsafe-eval and unsafe-inline for Next.js development
       process.env.NODE_ENV === "production"
         ? "script-src 'self'"
-        : "script-src 'self' 'unsafe-eval'",
-      "style-src 'self'",
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      process.env.NODE_ENV === "production"
+        ? "style-src 'self'"
+        : "style-src 'self' 'unsafe-inline'",
       "img-src 'self' https://mcd-portal-prod-cos1-1300270282.cos.ap-shanghai.myqcloud.com https://cms-cdn.mcd.cn https://img.mcd.cn data:",
       "font-src 'self' data:",
       "connect-src 'self'",

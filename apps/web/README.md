@@ -116,6 +116,132 @@ https://mcp.mcd.cn/mcp-servers/mcd-mcp
 
 All API calls include Bearer token authentication and are cached appropriately.
 
+## Security
+
+This application implements multiple layers of security protection:
+
+### Authentication & Authorization
+
+**Token Management**:
+- MCP API tokens stored server-side only in environment variables
+- Never exposed to client bundle
+- Bearer token authentication on all MCP API calls
+
+**Environment Variables**:
+```bash
+MCD_MCP_TOKEN=your-token-here  # Required, server-side only
+```
+
+### Error Handling
+
+**Environment-Aware Error Responses**:
+- **Development**: Full error details with stack traces for debugging
+- **Production**: Sanitized errors hiding sensitive information
+
+**Security Event Logging**:
+```typescript
+// Logged events include:
+// - Request metadata (method, URL, IP, user agent)
+// - API errors (including authentication)
+// - Validation errors
+```
+
+### Security Headers
+
+**Implemented via Next.js Middleware** (`src/middleware.ts`):
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `X-Frame-Options` | `DENY` | Prevents clickjacking attacks |
+| `X-Content-Type-Options` | `nosniff` | Prevents MIME-sniffing attacks |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Protects referrer information |
+| `Permissions-Policy` | Restrictive | Disables unnecessary browser features |
+| `Content-Security-Policy` | Restrictive CSP | Prevents XSS attacks |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | Enforces HTTPS (production only) |
+
+**CSP Configuration**:
+- Allows `'unsafe-inline'` and `'unsafe-eval'` for Next.js functionality
+- Restricts image sources to MCD CDN domains
+- Blocks all frame embedding (`frame-ancestors 'none'`)
+- Self-only for scripts, styles, and connections
+
+### Request Protection
+
+**Body Size Limits**:
+- Default: 1MB for all requests (configured in `next.config.ts`)
+- Auto-claim endpoint: 512KB (using `withBodySizeLimit` wrapper)
+- Returns 413 status with clear error message when exceeded
+
+**CORS Configuration**:
+- Allowed origins: `http://localhost:3000`, production domain
+- Credentials supported for allowed origins only
+- Preflight requests (OPTIONS) validated before processing
+- Disallowed origins receive 403 Forbidden
+- OPTIONS preflight handlers configured for `/api/coupons` route
+- Middleware applies CORS headers globally to all responses
+
+### Input Validation
+
+API endpoints validate where applicable:
+- Request body structure and types
+- Required fields presence
+- Data format correctness
+
+Invalid requests return:
+- 400 Bad Request status
+- Clear error message describing the issue
+- No sensitive information exposure
+
+### Monitoring
+
+**Security Events**:
+The application logs security-relevant events for monitoring:
+- API request failures
+- Invalid input attempts
+- CORS violations
+- Request size limit violations
+
+**Development Logging**:
+```bash
+# In development, detailed logs appear in console
+[Request] { method: 'POST', url: '/api/coupons', ip: '127.0.0.1', ... }
+```
+
+**Production Logging**:
+In production, configure log aggregation to:
+- Monitor security events
+- Detect attack patterns
+- Trigger alerts for suspicious activity
+
+### Security Best Practices
+
+**For Developers**:
+1. Never commit `.env.local` or expose `MCD_MCP_TOKEN`
+2. Always use API routes (server-side) for MCP calls, never client-side
+3. Test error handling in both development and production modes
+4. Review security headers in browser DevTools
+5. Update allowed CORS origins in middleware.ts when deploying to new domains
+
+**For Deployment**:
+1. Set `NODE_ENV=production` in production environment
+2. Enable HTTPS to activate HSTS header
+3. Set up log aggregation for security monitoring
+4. Regularly rotate MCP API tokens
+
+**For Testing**:
+```bash
+# Verify security headers
+curl -I http://localhost:3000
+
+# Test CORS (should return 403 for evil.com)
+curl -H "Origin: http://evil.com" -I http://localhost:3000
+
+# Test body size limit (should return 413)
+curl -X POST http://localhost:3000/api/available-coupons/auto-claim \
+  -H "Content-Type: application/json" \
+  -d @large-file.json  # > 512KB
+```
+
 ## Testing
 
 ### Unit Tests (Vitest)

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { NextRequest } from "next/server";
 import { POST } from "@/app/api/available-coupons/auto-claim/route";
 import { mockAutoClaimResponse, mock404Error, mock500Error } from "../mocks/mcpClient";
 
@@ -40,6 +41,12 @@ vi.mock("@/lib/mcpClient", () => ({
 const { mcpClient } = await import("@/lib/mcpClient");
 
 describe("POST /api/available-coupons/auto-claim", () => {
+  const createMockRequest = () => {
+    return new NextRequest("http://localhost:3000/api/available-coupons/auto-claim", {
+      method: "POST",
+    });
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -47,7 +54,8 @@ describe("POST /api/available-coupons/auto-claim", () => {
   it("auto-claims coupons successfully", async () => {
     vi.mocked(mcpClient.autoClaimCoupons).mockResolvedValue(mockAutoClaimResponse);
 
-    const response = await POST();
+    const request = createMockRequest();
+    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -66,7 +74,8 @@ describe("POST /api/available-coupons/auto-claim", () => {
     };
     vi.mocked(mcpClient.autoClaimCoupons).mockResolvedValue(zeroCouponsResponse);
 
-    const response = await POST();
+    const request = createMockRequest();
+    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -77,32 +86,26 @@ describe("POST /api/available-coupons/auto-claim", () => {
   it("handles McpClientError with 404 status", async () => {
     vi.mocked(mcpClient.autoClaimCoupons).mockRejectedValue(mock404Error());
 
-    const response = await POST();
+    const request = createMockRequest();
+    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(404);
-    expect(data).toMatchObject({
-      message: expect.stringContaining("Not found"),
-      details: {
-        code: 404,
-        message: "Resource not found",
-      },
+    expect(data).toEqual({
+      message: "An error occurred while processing your request",
     });
   });
 
   it("handles McpClientError with 500 status", async () => {
     vi.mocked(mcpClient.autoClaimCoupons).mockRejectedValue(mock500Error());
 
-    const response = await POST();
+    const request = createMockRequest();
+    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(500);
-    expect(data).toMatchObject({
-      message: expect.any(String),
-      details: {
-        code: 500,
-        message: "Internal server error",
-      },
+    expect(data).toEqual({
+      message: "An error occurred while processing your request",
     });
   });
 
@@ -110,16 +113,20 @@ describe("POST /api/available-coupons/auto-claim", () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(mcpClient.autoClaimCoupons).mockRejectedValue(new Error("Network failure"));
 
-    const response = await POST();
+    const request = createMockRequest();
+    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(500);
     expect(data).toEqual({
-      message: "Unexpected MCP API error",
+      message: "An unexpected error occurred",
     });
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Unexpected MCP API error",
-      expect.any(Error)
+      "[API Error]",
+      expect.objectContaining({
+        error: expect.any(Error),
+        timestamp: expect.any(String),
+      })
     );
 
     consoleErrorSpy.mockRestore();
@@ -134,12 +141,13 @@ describe("POST /api/available-coupons/auto-claim", () => {
     vi.mocked(mcpClient.autoClaimCoupons).mockRejectedValue(rateLimitError);
 
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const response = await POST();
+    const request = createMockRequest();
+    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(500);
     expect(data).toEqual({
-      message: "Unexpected MCP API error",
+      message: "An unexpected error occurred",
     });
 
     consoleErrorSpy.mockRestore();
