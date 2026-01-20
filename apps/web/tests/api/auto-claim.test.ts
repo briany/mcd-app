@@ -7,6 +7,19 @@ vi.mock("@/lib/config", () => ({
   getMcpToken: vi.fn(() => "test-token-123"),
 }));
 
+vi.mock("@/lib/authHelpers", () => ({
+  requireAuth: vi.fn(() =>
+    Promise.resolve({
+      error: null,
+      session: { user: { id: "1", name: "Test User" } },
+    })
+  ),
+}));
+
+vi.mock("@/lib/withCsrf", () => ({
+  withCsrf: (handler: any) => handler,
+}));
+
 vi.mock("@/lib/mcpClient", () => ({
   McpClientError: class McpClientError extends Error {
     constructor(
