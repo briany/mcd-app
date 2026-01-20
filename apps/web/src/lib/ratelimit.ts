@@ -13,7 +13,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 
 // In-memory fallback for development/testing
 const inMemoryLimiter = {
-  limit: async (identifier: string) => ({
+  limit: async () => ({
     success: true,
     limit: 100,
     remaining: 99,

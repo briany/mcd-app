@@ -14,7 +14,7 @@ import { validateBody, claimCouponSchema } from "@/lib/validation";
  */
 export const POST = withRateLimit(async (request: NextRequest) => {
   try {
-    const { data, error } = await validateBody(request, claimCouponSchema);
+    const { error } = await validateBody(request, claimCouponSchema);
     if (error) return error;
 
     // MCP server only supports auto-claim, not single-claim

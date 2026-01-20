@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // Date format: yyyy-MM-dd
@@ -38,7 +39,7 @@ export const paginationSchema = z.object({
 export async function validateBody<T>(
   request: Request,
   schema: z.Schema<T>
-): Promise<{ data: T; error: null } | { data: null; error: Response }> {
+): Promise<{ data: T; error: null } | { data: null; error: NextResponse }> {
   try {
     const body = await request.json();
     const data = schema.parse(body);
@@ -47,7 +48,7 @@ export async function validateBody<T>(
     if (error instanceof z.ZodError) {
       return {
         data: null,
-        error: Response.json(
+        error: NextResponse.json(
           {
             message: "Validation failed",
             errors: error.issues.map((e) => ({
@@ -61,7 +62,7 @@ export async function validateBody<T>(
     }
     return {
       data: null,
-      error: Response.json(
+      error: NextResponse.json(
         { message: "Invalid request body" },
         { status: 400 }
       ),
@@ -75,7 +76,7 @@ export async function validateBody<T>(
 export function validateQuery<T>(
   searchParams: URLSearchParams,
   schema: z.Schema<T>
-): { data: T; error: null } | { data: null; error: Response } {
+): { data: T; error: null } | { data: null; error: NextResponse } {
   try {
     const params = Object.fromEntries(searchParams.entries());
     const data = schema.parse(params);
@@ -84,7 +85,7 @@ export function validateQuery<T>(
     if (error instanceof z.ZodError) {
       return {
         data: null,
-        error: Response.json(
+        error: NextResponse.json(
           {
             message: "Validation failed",
             errors: error.issues.map((e) => ({
@@ -98,7 +99,7 @@ export function validateQuery<T>(
     }
     return {
       data: null,
-      error: Response.json(
+      error: NextResponse.json(
         { message: "Invalid query parameters" },
         { status: 400 }
       ),

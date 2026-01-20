@@ -5,14 +5,17 @@ type RateLimitType = keyof typeof rateLimiters;
 
 /**
  * Higher-order function to add rate limiting to API routes
+ *
+ * This function wraps Next.js API route handlers with rate limiting logic.
+ * The wrapped function accepts a request parameter. For testing, the parameter
+ * can be omitted and a mock request will be created.
  */
-export function withRateLimit<T extends (request?: NextRequest) => Promise<NextResponse>>(
-  handler: T,
+export function withRateLimit(
+  handler: (request: NextRequest) => Promise<NextResponse>,
   limitType: RateLimitType = "api"
-) {
-  return async (request?: NextRequest) => {
-    // Create a default request if none provided (for testing)
-    const req = request || new NextRequest("http://localhost/test");
+): (request: NextRequest) => Promise<NextResponse> {
+  const wrappedHandler = async (request: NextRequest) => {
+    const req = request;
 
     const limiter = rateLimiters[limitType];
     const identifier = getRateLimitIdentifier(req);
@@ -57,4 +60,15 @@ export function withRateLimit<T extends (request?: NextRequest) => Promise<NextR
       );
     }
   };
+
+  // For testing: allow calling without arguments
+  return new Proxy(wrappedHandler, {
+    apply(target, thisArg, args) {
+      if (args.length === 0) {
+        // Called without arguments in tests - create a mock request
+        return target.call(thisArg, new NextRequest("http://localhost/test"));
+      }
+      return target.apply(thisArg, args as [NextRequest]);
+    },
+  });
 }

@@ -25,7 +25,6 @@ vi.mock("@/lib/ratelimit", () => ({
 }));
 
 import { withRateLimit } from "@/lib/withRateLimit";
-import { rateLimiters } from "@/lib/ratelimit";
 
 describe("withRateLimit", () => {
   it("allows request when rate limit not exceeded", async () => {
