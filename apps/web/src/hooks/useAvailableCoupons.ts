@@ -16,6 +16,13 @@ const bulkClaimFetcher = async (): Promise<AutoClaimResponse> => {
     method: "POST",
   });
 
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(
+      `Too many requests. Please try again in ${retryAfter} seconds.`
+    );
+  }
+
   if (!response.ok) {
     const message = await response.text();
     throw new Error(message || `Failed to auto-claim coupons (${response.status})`);
@@ -30,6 +37,13 @@ const claimSingleFetcher = async (couponId: string): Promise<AutoClaimResponse> 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ couponId }),
   });
+
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(
+      `Too many requests. Please try again in ${retryAfter} seconds.`
+    );
+  }
 
   if (!response.ok) {
     const message = await response.text();
