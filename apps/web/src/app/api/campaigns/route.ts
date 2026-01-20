@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 
 import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
+import { withRateLimit } from "@/lib/withRateLimit";
 
 export const revalidate = 0;
 
-export const GET = async (request: Request) => {
+export const GET = withRateLimit(async (request: Request) => {
   try {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get("date") ?? undefined;
@@ -14,4 +15,4 @@ export const GET = async (request: Request) => {
   } catch (error) {
     return handleApiError(error);
   }
-};
+}, "api");

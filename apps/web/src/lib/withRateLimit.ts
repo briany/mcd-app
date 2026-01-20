@@ -6,13 +6,16 @@ type RateLimitType = keyof typeof rateLimiters;
 /**
  * Higher-order function to add rate limiting to API routes
  */
-export function withRateLimit(
-  handler: (request: NextRequest) => Promise<NextResponse>,
+export function withRateLimit<T extends (request?: NextRequest) => Promise<NextResponse>>(
+  handler: T,
   limitType: RateLimitType = "api"
 ) {
-  return async (request: NextRequest) => {
+  return async (request?: NextRequest) => {
+    // Create a default request if none provided (for testing)
+    const req = request || new NextRequest("http://localhost/test");
+
     const limiter = rateLimiters[limitType];
-    const identifier = getRateLimitIdentifier(request);
+    const identifier = getRateLimitIdentifier(req);
 
     try {
       const { success, limit, remaining, reset } = await limiter.limit(identifier);
@@ -37,7 +40,7 @@ export function withRateLimit(
         );
       }
 
-      const response = await handler(request);
+      const response = await handler(req);
 
       // Add rate limit headers to successful responses
       response.headers.set("X-RateLimit-Limit", limit.toString());

@@ -7,6 +7,20 @@ vi.mock("@/lib/config", () => ({
   getMcpToken: vi.fn(() => "test-token-123"),
 }));
 
+vi.mock("@/lib/ratelimit", () => ({
+  rateLimiters: {
+    api: {
+      limit: vi.fn(async () => ({
+        success: true,
+        limit: 100,
+        remaining: 99,
+        reset: Date.now() + 60000,
+      })),
+    },
+  },
+  getRateLimitIdentifier: vi.fn(() => "ip:127.0.0.1"),
+}));
+
 vi.mock("@/lib/mcpClient", () => ({
   McpClientError: class McpClientError extends Error {
     constructor(

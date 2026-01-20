@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
+import { withRateLimit } from "@/lib/withRateLimit";
 
 /**
  * Claim coupon endpoint
@@ -10,7 +11,7 @@ import { handleApiError } from "@/lib/api";
  * This endpoint triggers auto-claim for all available coupons regardless of the couponId.
  * This maintains UI compatibility but the behavior is to claim all, not just one.
  */
-export const POST = async (request: NextRequest) => {
+export const POST = withRateLimit(async (request: NextRequest) => {
   try {
     const { couponId } = await request.json();
     if (!couponId || typeof couponId !== "string") {
@@ -24,4 +25,4 @@ export const POST = async (request: NextRequest) => {
   } catch (error) {
     return handleApiError(error);
   }
-};
+}, "write");
