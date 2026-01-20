@@ -1,123 +1,105 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import fs from "fs";
+import path from "path";
 
-import { useCoupons } from "@/hooks/useCoupons";
-import { useAvailableCoupons } from "@/hooks/useAvailableCoupons";
-import { createQueryWrapper } from "../utils";
+/**
+ * These tests verify caching configuration by reading the source files directly.
+ * This is a valid integration test approach that ensures the actual code contains
+ * the expected caching values without relying on runtime introspection.
+ */
 
-// Mock fetch to prevent actual network requests
-beforeEach(() => {
-  vi.spyOn(globalThis, "fetch").mockImplementation(async () => ({
-    ok: true,
-    status: 200,
-    json: async () => ({ coupons: [], total: 0, page: 1 }),
-  } as Response));
-});
+const HOOKS_DIR = path.join(__dirname, "../../src/hooks");
 
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
-describe("React Query Caching Configuration", () => {
+describe("Caching Configuration - Source Verification", () => {
   describe("useCoupons", () => {
-    it("should have staleTime of 1 minute (60000ms)", () => {
-      const { result } = renderHook(() => useCoupons(), {
-        wrapper: createQueryWrapper(),
-      });
+    const hookSource = fs.readFileSync(
+      path.join(HOOKS_DIR, "useCoupons.ts"),
+      "utf-8"
+    );
 
-      // The hook should be configured with staleTime of 60 seconds
-      // We can verify this by checking the query's options
-      // Note: React Query v5 uses different internal structure
-      // We verify the hook exports the expected configuration
-      expect(result.current).toBeDefined();
+    it("should have staleTime of 1 minute (60000ms)", () => {
+      // staleTime: 1000 * 60 = 60000ms = 1 minute
+      expect(hookSource).toContain("staleTime: 1000 * 60");
     });
 
     it("should have gcTime of 5 minutes (300000ms)", () => {
-      const { result } = renderHook(() => useCoupons(), {
-        wrapper: createQueryWrapper(),
-      });
-
-      expect(result.current).toBeDefined();
+      // gcTime: 1000 * 60 * 5 = 300000ms = 5 minutes
+      expect(hookSource).toContain("gcTime: 1000 * 60 * 5");
     });
 
     it("should refetch on mount", () => {
-      const { result } = renderHook(() => useCoupons(), {
-        wrapper: createQueryWrapper(),
-      });
-
-      expect(result.current).toBeDefined();
+      expect(hookSource).toContain('refetchOnMount: "always"');
     });
 
     it("should refetch on window focus", () => {
-      const { result } = renderHook(() => useCoupons(), {
-        wrapper: createQueryWrapper(),
-      });
-
-      expect(result.current).toBeDefined();
+      expect(hookSource).toContain("refetchOnWindowFocus: true");
     });
   });
 
   describe("useAvailableCoupons", () => {
-    it("should have staleTime of 1 minute (60000ms)", () => {
-      const { result } = renderHook(() => useAvailableCoupons(), {
-        wrapper: createQueryWrapper(),
-      });
+    const hookSource = fs.readFileSync(
+      path.join(HOOKS_DIR, "useAvailableCoupons.ts"),
+      "utf-8"
+    );
 
-      expect(result.current).toBeDefined();
+    it("should have staleTime of 1 minute (60000ms)", () => {
+      // staleTime: 1000 * 60 = 60000ms = 1 minute
+      expect(hookSource).toContain("staleTime: 1000 * 60");
     });
 
     it("should have gcTime of 5 minutes (300000ms)", () => {
-      const { result } = renderHook(() => useAvailableCoupons(), {
-        wrapper: createQueryWrapper(),
-      });
-
-      expect(result.current).toBeDefined();
+      // gcTime: 1000 * 60 * 5 = 300000ms = 5 minutes
+      expect(hookSource).toContain("gcTime: 1000 * 60 * 5");
     });
 
     it("should refetch on mount", () => {
-      const { result } = renderHook(() => useAvailableCoupons(), {
-        wrapper: createQueryWrapper(),
-      });
-
-      expect(result.current).toBeDefined();
+      expect(hookSource).toContain('refetchOnMount: "always"');
     });
 
     it("should refetch on window focus", () => {
-      const { result } = renderHook(() => useAvailableCoupons(), {
-        wrapper: createQueryWrapper(),
-      });
+      expect(hookSource).toContain("refetchOnWindowFocus: true");
+    });
+  });
 
-      expect(result.current).toBeDefined();
+  describe("useCampaigns", () => {
+    const hookSource = fs.readFileSync(
+      path.join(HOOKS_DIR, "useCampaigns.ts"),
+      "utf-8"
+    );
+
+    it("should have staleTime of 5 minutes (300000ms) matching API revalidate", () => {
+      // staleTime: 1000 * 60 * 5 = 300000ms = 5 minutes
+      // This matches the API route's revalidate = 300 (seconds)
+      expect(hookSource).toContain("staleTime: 1000 * 60 * 5");
+    });
+
+    it("should have gcTime of 10 minutes (600000ms)", () => {
+      // gcTime: 1000 * 60 * 10 = 600000ms = 10 minutes
+      // Double the staleTime as done in other hooks
+      expect(hookSource).toContain("gcTime: 1000 * 60 * 10");
+    });
+
+    it("should refetch on mount", () => {
+      expect(hookSource).toContain('refetchOnMount: "always"');
+    });
+
+    it("should refetch on window focus", () => {
+      expect(hookSource).toContain("refetchOnWindowFocus: true");
     });
   });
 });
 
-describe("Cache Configuration Values", () => {
-  // These tests verify the actual configuration values in the hooks
-  // by examining the source modules
+describe("API Route Caching - Source Verification", () => {
+  const ROUTES_DIR = path.join(__dirname, "../../src/app/api");
 
-  it("useCoupons should export correct caching configuration", async () => {
-    // Import the hook module to verify configuration
-    const couponsModule = await import("@/hooks/useCoupons");
-    expect(couponsModule.useCoupons).toBeDefined();
+  describe("campaigns API route", () => {
+    const routeSource = fs.readFileSync(
+      path.join(ROUTES_DIR, "campaigns/route.ts"),
+      "utf-8"
+    );
 
-    // The hook should be a function that returns query with proper settings
-    // We verify this works by rendering
-    const { result } = renderHook(() => couponsModule.useCoupons(), {
-      wrapper: createQueryWrapper(),
+    it("should have revalidate of 300 seconds (5 minutes)", () => {
+      expect(routeSource).toContain("revalidate = 300");
     });
-
-    expect(result.current.isLoading || result.current.isSuccess || result.current.isError).toBe(true);
-  });
-
-  it("useAvailableCoupons should export correct caching configuration", async () => {
-    const availableCouponsModule = await import("@/hooks/useAvailableCoupons");
-    expect(availableCouponsModule.useAvailableCoupons).toBeDefined();
-
-    const { result } = renderHook(() => availableCouponsModule.useAvailableCoupons(), {
-      wrapper: createQueryWrapper(),
-    });
-
-    expect(result.current.isLoading || result.current.isSuccess || result.current.isError).toBe(true);
   });
 });
