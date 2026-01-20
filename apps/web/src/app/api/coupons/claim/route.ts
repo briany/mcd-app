@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
+import { requireAuth } from "@/lib/authHelpers";
+import { withCsrf } from "@/lib/withCsrf";
 import { withRateLimit } from "@/lib/withRateLimit";
 import { validateBody, claimCouponSchema } from "@/lib/validation";
 
@@ -12,10 +14,15 @@ import { validateBody, claimCouponSchema } from "@/lib/validation";
  * This endpoint triggers auto-claim for all available coupons regardless of the couponId.
  * This maintains UI compatibility but the behavior is to claim all, not just one.
  */
-export const POST = withRateLimit(async (request: NextRequest) => {
+export const POST = withRateLimit(withCsrf(async (request: NextRequest) => {
   try {
-    const { error } = await validateBody(request, claimCouponSchema);
-    if (error) return error;
+    // Check authentication
+    const { error: authError } = await requireAuth();
+    if (authError) return authError;
+
+    // Validate request body
+    const { error: validationError } = await validateBody(request, claimCouponSchema);
+    if (validationError) return validationError;
 
     // MCP server only supports auto-claim, not single-claim
     // Trigger auto-claim for all available coupons
@@ -24,4 +31,4 @@ export const POST = withRateLimit(async (request: NextRequest) => {
   } catch (error) {
     return handleApiError(error);
   }
-}, "write");
+}), "write");

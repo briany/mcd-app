@@ -1,14 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
+import { requireAuth } from "@/lib/authHelpers";
+import { withCsrf } from "@/lib/withCsrf";
 import { withRateLimit } from "@/lib/withRateLimit";
 
-export const POST = withRateLimit(async () => {
+export const POST = withRateLimit(withCsrf(async () => {
   try {
+    // Check authentication
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const result = await mcpClient.autoClaimCoupons();
     return NextResponse.json(result);
   } catch (error) {
     return handleApiError(error);
   }
-}, "autoClaim");
+}), "autoClaim");

@@ -8,6 +8,19 @@ vi.mock("@/lib/config", () => ({
   getMcpToken: vi.fn(() => "test-token-123"),
 }));
 
+vi.mock("@/lib/authHelpers", () => ({
+  requireAuth: vi.fn(() =>
+    Promise.resolve({
+      error: null,
+      session: { user: { id: "1", name: "Test User" } },
+    })
+  ),
+}));
+
+vi.mock("@/lib/withCsrf", () => ({
+  withCsrf: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
+}));
+
 vi.mock("@/lib/ratelimit", () => ({
   rateLimiters: {
     write: {
