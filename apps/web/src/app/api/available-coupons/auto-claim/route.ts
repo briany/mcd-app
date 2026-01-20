@@ -5,7 +5,7 @@ import { handleApiError } from "@/lib/api";
 import { requireAuth } from "@/lib/authHelpers";
 import { withCsrf } from "@/lib/withCsrf";
 
-export const POST = withCsrf(async (_request: NextRequest) => {
+export const POST = withCsrf(async () => {
   try {
     // Check authentication
     const { error } = await requireAuth();

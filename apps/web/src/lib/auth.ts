@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize() {
         // TODO: Integrate with actual authentication provider
         // (database lookup, LDAP, external API, etc.)
         return null;
