@@ -1,12 +1,27 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://mcd-app.example.com", // Replace with actual production domain
+];
+
+function setCorsHeaders(response: NextResponse, origin: string | null) {
+  if (origin && allowedOrigins.includes(origin)) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+  }
+}
+
 /**
  * Security headers middleware
  * Adds security headers to all responses
  */
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
+  const origin = request.headers.get("origin");
+
+  setCorsHeaders(response, origin);
 
   // Prevent clickjacking attacks
   response.headers.set("X-Frame-Options", "DENY");
