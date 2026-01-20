@@ -38,4 +38,33 @@ test.describe("Security Headers", () => {
     // HSTS should not be present on HTTP
     expect(headers["strict-transport-security"]).toBeUndefined();
   });
+
+  test("sets CORS headers for allowed origin", async ({ page, context }) => {
+    // Set the origin header for all requests in this context
+    await context.setExtraHTTPHeaders({
+      origin: "http://localhost:3000",
+    });
+
+    const response = await page.goto("/", {
+      waitUntil: "domcontentloaded",
+    });
+
+    expect(response?.headers()["access-control-allow-origin"]).toBe(
+      "http://localhost:3000"
+    );
+    expect(response?.headers()["access-control-allow-credentials"]).toBe("true");
+  });
+
+  test("does not set CORS headers for disallowed origin", async ({ page, context }) => {
+    // Set the origin header for all requests in this context
+    await context.setExtraHTTPHeaders({
+      origin: "http://evil.com",
+    });
+
+    const response = await page.goto("/", {
+      waitUntil: "domcontentloaded",
+    });
+
+    expect(response?.headers()["access-control-allow-origin"]).toBeUndefined();
+  });
 });
