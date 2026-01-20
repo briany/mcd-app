@@ -84,11 +84,6 @@ export default function SignInPage() {
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
-
-        <div className="mt-4 text-center text-sm text-slate-500">
-          <p>Demo credentials:</p>
-          <p className="font-mono">Username: admin / Password: password</p>
-        </div>
       </div>
     </div>
   );

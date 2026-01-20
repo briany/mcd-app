@@ -46,4 +46,12 @@ export function getCsrfTokenFromHeaders(headers: Headers): string | null {
   return headers.get(CSRF_TOKEN_HEADER);
 }
 
-export { CSRF_TOKEN_HEADER };
+/**
+ * Invalidate the CSRF secret (call on logout)
+ */
+export async function invalidateCsrfToken(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(CSRF_SECRET_COOKIE);
+}
+
+export { CSRF_TOKEN_HEADER, CSRF_SECRET_COOKIE };

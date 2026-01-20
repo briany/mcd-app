@@ -4,8 +4,18 @@ import { SidebarNav } from "@/components/SidebarNav";
 
 // Mock Next.js navigation
 const mockUsePathname = vi.fn();
+const mockPush = vi.fn();
+
 vi.mock("next/navigation", () => ({
   usePathname: () => mockUsePathname(),
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
+// Mock NextAuth
+vi.mock("next-auth/react", () => ({
+  signOut: vi.fn(),
 }));
 
 describe("SidebarNav", () => {

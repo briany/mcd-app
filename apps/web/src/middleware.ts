@@ -26,8 +26,11 @@ export default withAuth(
     // Content Security Policy
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // TODO: Remove unsafe-* in production
-      "style-src 'self' 'unsafe-inline'",
+      // Allow unsafe-eval in development for HMR (Hot Module Replacement)
+      process.env.NODE_ENV === "production"
+        ? "script-src 'self'"
+        : "script-src 'self' 'unsafe-eval'",
+      "style-src 'self'",
       "img-src 'self' https://mcd-portal-prod-cos1-1300270282.cos.ap-shanghai.myqcloud.com https://cms-cdn.mcd.cn https://img.mcd.cn data:",
       "font-src 'self' data:",
       "connect-src 'self'",

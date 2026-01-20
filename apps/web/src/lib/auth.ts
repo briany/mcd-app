@@ -1,6 +1,30 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+// Validate NEXTAUTH_SECRET at module load time
+const secret = process.env.NEXTAUTH_SECRET;
+
+if (!secret) {
+  throw new Error(
+    "NEXTAUTH_SECRET environment variable is not set. " +
+    "Generate one with: openssl rand -base64 32"
+  );
+}
+
+if (secret.includes("your-secret-key-here")) {
+  throw new Error(
+    "NEXTAUTH_SECRET is still set to the placeholder value. " +
+    "Generate a secure secret with: openssl rand -base64 32"
+  );
+}
+
+if (secret.length < 32) {
+  throw new Error(
+    "NEXTAUTH_SECRET is too short. Must be at least 32 characters. " +
+    "Generate one with: openssl rand -base64 32"
+  );
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -10,16 +34,8 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // TODO: Replace with your actual authentication logic
-        // This could be a database lookup, LDAP, or external API
-        // For now, using a simple check for demo purposes
-        if (credentials?.username === "admin" && credentials?.password === "password") {
-          return {
-            id: "1",
-            name: "Admin User",
-            email: "admin@example.com",
-          };
-        }
+        // TODO: Integrate with actual authentication provider
+        // (database lookup, LDAP, external API, etc.)
         return null;
       },
     }),
