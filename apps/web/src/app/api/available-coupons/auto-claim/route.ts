@@ -10,7 +10,7 @@ import { withBodySizeLimit } from "@/lib/withBodySizeLimit";
 export const POST = withRateLimit(
   withCsrf(
     withBodySizeLimit(
-      async (request: NextRequest) => {
+      async (_request: NextRequest) => {
         try {
           // Check authentication
           const { error } = await requireAuth();
