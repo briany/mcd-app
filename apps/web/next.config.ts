@@ -27,6 +27,14 @@ validateEnv();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+
+  // Request body size limits
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "1mb",
+    },
+  },
+
   images: {
     remotePatterns: [
       {
