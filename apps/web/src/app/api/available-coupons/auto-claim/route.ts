@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
@@ -10,7 +10,7 @@ import { withBodySizeLimit } from "@/lib/withBodySizeLimit";
 export const POST = withRateLimit(
   withCsrf(
     withBodySizeLimit(
-      async (_request: NextRequest) => {
+      async () => {
         try {
           // Check authentication
           const { error } = await requireAuth();
