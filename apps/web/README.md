@@ -142,8 +142,7 @@ MCD_MCP_TOKEN=your-token-here  # Required, server-side only
 ```typescript
 // Logged events include:
 // - Request metadata (method, URL, IP, user agent)
-// - Authentication failures
-// - Rate limit violations
+// - API errors (including authentication)
 // - Validation errors
 ```
 
@@ -158,7 +157,7 @@ MCD_MCP_TOKEN=your-token-here  # Required, server-side only
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Protects referrer information |
 | `Permissions-Policy` | Restrictive | Disables unnecessary browser features |
 | `Content-Security-Policy` | Restrictive CSP | Prevents XSS attacks |
-| `Strict-Transport-Security` | `max-age=31536000` | Enforces HTTPS (production only) |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | Enforces HTTPS (production only) |
 
 **CSP Configuration**:
 - Allows `'unsafe-inline'` and `'unsafe-eval'` for Next.js functionality
@@ -178,10 +177,12 @@ MCD_MCP_TOKEN=your-token-here  # Required, server-side only
 - Credentials supported for allowed origins only
 - Preflight requests (OPTIONS) validated before processing
 - Disallowed origins receive 403 Forbidden
+- OPTIONS preflight handlers configured for `/api/coupons` route
+- Middleware applies CORS headers globally to all responses
 
 ### Input Validation
 
-All API endpoints validate:
+API endpoints validate where applicable:
 - Request body structure and types
 - Required fields presence
 - Data format correctness
@@ -195,8 +196,7 @@ Invalid requests return:
 
 **Security Events**:
 The application logs security-relevant events for monitoring:
-- Failed authentication attempts
-- Rate limit violations
+- API request failures
 - Invalid input attempts
 - CORS violations
 - Request size limit violations
@@ -205,7 +205,6 @@ The application logs security-relevant events for monitoring:
 ```bash
 # In development, detailed logs appear in console
 [Request] { method: 'POST', url: '/api/coupons', ip: '127.0.0.1', ... }
-[Security] Rate limit exceeded for IP 127.0.0.1
 ```
 
 **Production Logging**:
@@ -221,14 +220,13 @@ In production, configure log aggregation to:
 2. Always use API routes (server-side) for MCP calls, never client-side
 3. Test error handling in both development and production modes
 4. Review security headers in browser DevTools
-5. Update allowed CORS origins when deploying to new domains
+5. Update allowed CORS origins in middleware.ts when deploying to new domains
 
 **For Deployment**:
 1. Set `NODE_ENV=production` in production environment
-2. Configure `NEXT_PUBLIC_APP_URL` for CORS
-3. Enable HTTPS to activate HSTS header
-4. Set up log aggregation for security monitoring
-5. Regularly rotate MCP API tokens
+2. Enable HTTPS to activate HSTS header
+3. Set up log aggregation for security monitoring
+4. Regularly rotate MCP API tokens
 
 **For Testing**:
 ```bash
