@@ -11,8 +11,8 @@ export const revalidate = 0;
 export const GET = withRateLimit(async (request: NextRequest) => {
   try {
     // Check authentication
-    const { error } = await requireAuth();
-    if (error) return error;
+    const { error: authError } = await requireAuth();
+    if (authError) return authError;
 
     const { searchParams } = new URL(request.url);
     const { data, error } = validateQuery(searchParams, campaignQuerySchema);
