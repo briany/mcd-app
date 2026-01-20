@@ -1,4 +1,4 @@
-import { Tokens } from "csrf";
+import Tokens from "csrf";
 import { cookies } from "next/headers";
 
 const tokens = new Tokens();
