@@ -84,7 +84,7 @@ describe("safeRegex", () => {
       expect(result).not.toBeNull();
     });
 
-    it("logs warning when regex execution exceeds timeout", () => {
+    it("logs warning but still returns result when regex execution exceeds timeout threshold", () => {
       // Create a mock that simulates slow regex by manipulating Date.now
       const originalDateNow = Date.now;
       let callCount = 0;
@@ -100,12 +100,14 @@ describe("safeRegex", () => {
 
       const result = safeMatch(text, pattern, 1000);
 
-      // Should return null when timeout exceeded
-      expect(result).toBeNull();
+      // Should still return result - monitoring only, not cancellation
+      expect(result).not.toBeNull();
+      expect(result![0]).toBe("test");
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "[Security] Regex execution exceeded timeout",
+        "[Security] Regex execution exceeded timeout threshold",
         expect.objectContaining({
           pattern: pattern.source,
+          elapsed: 1001,
           timeout: 1000,
         })
       );
@@ -130,12 +132,78 @@ describe("safeRegex", () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "[Security] Regex execution failed",
         expect.objectContaining({
-          pattern,
+          pattern: pattern.source,
           error: expect.any(Error),
         })
       );
 
       String.prototype.match = originalMatch;
+    });
+
+    describe("input size limiting", () => {
+      it("returns null and warns when input exceeds default max size (50KB)", () => {
+        const largeInput = "a".repeat(60 * 1024); // 60KB > 50KB limit
+        const result = safeMatch(largeInput, /pattern/);
+
+        expect(result).toBeNull();
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          "[Security] Input too large for regex matching",
+          expect.objectContaining({
+            inputSize: 60 * 1024,
+            maxSize: 50 * 1024,
+            pattern: "pattern",
+          })
+        );
+      });
+
+      it("allows input at exactly the max size limit", () => {
+        const exactLimitInput = "a".repeat(50 * 1024); // Exactly 50KB
+        const result = safeMatch(exactLimitInput, /a+/);
+
+        expect(result).not.toBeNull();
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+      });
+
+      it("allows custom max input size parameter", () => {
+        const input = "a".repeat(1000);
+        const result = safeMatch(input, /a+/, 1000, 500); // 500 byte limit
+
+        expect(result).toBeNull(); // Should reject 1000 bytes when limit is 500
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          "[Security] Input too large for regex matching",
+          expect.objectContaining({
+            inputSize: 1000,
+            maxSize: 500,
+          })
+        );
+      });
+
+      it("allows larger custom max input size", () => {
+        const input = "a".repeat(100 * 1024); // 100KB
+        const result = safeMatch(input, /a+/, 1000, 200 * 1024); // 200KB limit
+
+        expect(result).not.toBeNull();
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+      });
+
+      it("checks input size before executing regex", () => {
+        // This test verifies that size check happens BEFORE regex execution
+        // by using a potentially slow regex that should never run
+        const largeInput = "a".repeat(60 * 1024);
+        const potentiallySlowPattern = /(a+)+$/; // ReDoS-vulnerable pattern
+
+        const start = Date.now();
+        const result = safeMatch(largeInput, potentiallySlowPattern);
+        const elapsed = Date.now() - start;
+
+        expect(result).toBeNull();
+        // Should return almost immediately since regex never executed
+        expect(elapsed).toBeLessThan(100);
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          "[Security] Input too large for regex matching",
+          expect.any(Object)
+        );
+      });
     });
 
     it("handles unicode text correctly", () => {
