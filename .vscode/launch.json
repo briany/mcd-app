@@ -1,0 +1,44 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:mcd-app}/.worktrees/macos-app/MCDApp",
+            "name": "Debug MCDApp (.worktrees/macos-app/MCDApp)",
+            "target": "MCDApp",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug MCDApp (.worktrees/macos-app/MCDApp)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:mcd-app}/.worktrees/macos-app/MCDApp",
+            "name": "Release MCDApp (.worktrees/macos-app/MCDApp)",
+            "target": "MCDApp",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release MCDApp (.worktrees/macos-app/MCDApp)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:mcd-app}/apps/macos/MCD-macOS",
+            "name": "Debug MCD-macOS (apps/macos/MCD-macOS)",
+            "target": "MCD-macOS",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug MCD-macOS (apps/macos/MCD-macOS)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:mcd-app}/apps/macos/MCD-macOS",
+            "name": "Release MCD-macOS (apps/macos/MCD-macOS)",
+            "target": "MCD-macOS",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release MCD-macOS (apps/macos/MCD-macOS)"
+        }
+    ]
+}
