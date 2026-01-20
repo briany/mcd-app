@@ -19,7 +19,10 @@ export const useCoupons = () => {
   const query = useQuery({
     queryKey: ["coupons"],
     queryFn: couponsFetcher,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60, // Consider fresh for 1 minute
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   const claimMutation = useMutation({
