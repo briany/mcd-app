@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AutoClaimResponse, CouponListResponse } from "@/lib/types";
+import { useCsrf } from "./useCsrf";
 
 const couponsFetcher = async (): Promise<CouponListResponse> => {
   const response = await fetch("/api/coupons");
@@ -11,23 +12,9 @@ const couponsFetcher = async (): Promise<CouponListResponse> => {
   return (await response.json()) as CouponListResponse;
 };
 
-const claimFetcher = async (couponId: string): Promise<AutoClaimResponse> => {
-  const response = await fetch("/api/coupons/claim", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ couponId }),
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Failed to claim coupon (${response.status})`);
-  }
-
-  return (await response.json()) as AutoClaimResponse;
-};
-
 export const useCoupons = () => {
   const queryClient = useQueryClient();
+  const { getCsrfHeaders } = useCsrf();
 
   const query = useQuery({
     queryKey: ["coupons"],
@@ -37,7 +24,23 @@ export const useCoupons = () => {
 
   const claimMutation = useMutation({
     mutationKey: ["claim-coupon"],
-    mutationFn: claimFetcher,
+    mutationFn: async (couponId: string) => {
+      const response = await fetch("/api/coupons/claim", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getCsrfHeaders(),
+        },
+        body: JSON.stringify({ couponId }),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Failed to claim coupon (${response.status})`);
+      }
+
+      return (await response.json()) as AutoClaimResponse;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coupons"] });
       queryClient.invalidateQueries({ queryKey: ["available-coupons"] });

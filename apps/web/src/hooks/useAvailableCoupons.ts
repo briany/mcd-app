@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AutoClaimResponse, CouponListResponse } from "@/lib/types";
+import { useCsrf } from "./useCsrf";
 
 const availableFetcher = async (): Promise<CouponListResponse> => {
   const response = await fetch("/api/available-coupons");
@@ -11,36 +12,9 @@ const availableFetcher = async (): Promise<CouponListResponse> => {
   return (await response.json()) as CouponListResponse;
 };
 
-const bulkClaimFetcher = async (): Promise<AutoClaimResponse> => {
-  const response = await fetch("/api/available-coupons/auto-claim", {
-    method: "POST",
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Failed to auto-claim coupons (${response.status})`);
-  }
-
-  return (await response.json()) as AutoClaimResponse;
-};
-
-const claimSingleFetcher = async (couponId: string): Promise<AutoClaimResponse> => {
-  const response = await fetch("/api/coupons/claim", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ couponId }),
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Failed to claim coupon (${response.status})`);
-  }
-
-  return (await response.json()) as AutoClaimResponse;
-};
-
 export const useAvailableCoupons = () => {
   const queryClient = useQueryClient();
+  const { getCsrfHeaders } = useCsrf();
 
   const query = useQuery({
     queryKey: ["available-coupons"],
@@ -50,7 +24,19 @@ export const useAvailableCoupons = () => {
 
   const autoClaimMutation = useMutation({
     mutationKey: ["auto-claim"],
-    mutationFn: bulkClaimFetcher,
+    mutationFn: async () => {
+      const response = await fetch("/api/available-coupons/auto-claim", {
+        method: "POST",
+        headers: getCsrfHeaders(),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Failed to auto-claim coupons (${response.status})`);
+      }
+
+      return (await response.json()) as AutoClaimResponse;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["available-coupons"] });
       queryClient.invalidateQueries({ queryKey: ["coupons"] });
@@ -59,7 +45,23 @@ export const useAvailableCoupons = () => {
 
   const claimMutation = useMutation({
     mutationKey: ["claim-from-available"],
-    mutationFn: claimSingleFetcher,
+    mutationFn: async (couponId: string) => {
+      const response = await fetch("/api/coupons/claim", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getCsrfHeaders(),
+        },
+        body: JSON.stringify({ couponId }),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Failed to claim coupon (${response.status})`);
+      }
+
+      return (await response.json()) as AutoClaimResponse;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["available-coupons"] });
       queryClient.invalidateQueries({ queryKey: ["coupons"] });
