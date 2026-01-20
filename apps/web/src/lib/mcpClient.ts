@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getMcpBaseUrl, getMcpToken } from "@/lib/config";
+import { safeMatch } from "@/lib/safeRegex";
 import type {
   AutoClaimResponse,
   CampaignListResponse,
@@ -150,8 +151,8 @@ const extractStructuredData = <T>(mcpResponse: MCPResponse): T => {
 const parseCouponsMarkdown = (markdown: string): CouponListResponse => {
   const coupons: CouponListResponse["coupons"] = [];
 
-  // Extract total and page info from header
-  const headerMatch = markdown.match(/共\s*(\d+)\s*张.*第\s*(\d+)\/\d+\s*页/);
+  // Extract total and page info from header (using safeMatch for ReDoS protection)
+  const headerMatch = safeMatch(markdown, /共\s*(\d+)\s*张.*第\s*(\d+)\/\d+\s*页/);
   const total = headerMatch ? parseInt(headerMatch[1], 10) : 0;
   const page = headerMatch ? parseInt(headerMatch[2], 10) : 1;
 
@@ -162,12 +163,12 @@ const parseCouponsMarkdown = (markdown: string): CouponListResponse => {
     const lines = section.split("\n");
     const name = lines[0].trim();
 
-    // Extract image URL
-    const imgMatch = section.match(/<img\s+src="([^"]+)"/);
+    // Extract image URL (using safeMatch for ReDoS protection)
+    const imgMatch = safeMatch(section, /<img\s+src="([^"]+)"/);
     const imageUrl = imgMatch ? imgMatch[1] : null;
 
-    // Extract expiry date from "有效期" line
-    const expiryMatch = section.match(/有效期[^:]*:\s*(\d{4}-\d{2}-\d{2})/);
+    // Extract expiry date from "有效期" line (using safeMatch for ReDoS protection)
+    const expiryMatch = safeMatch(section, /有效期[^:]*:\s*(\d{4}-\d{2}-\d{2})/);
     const expiryDate = expiryMatch ? expiryMatch[1] : new Date().toISOString().split("T")[0];
 
     coupons.push({
@@ -194,16 +195,16 @@ const parseCampaignsMarkdown = (markdown: string, date: string): CampaignListRes
   sections.forEach((section, index) => {
     if (!section.includes("活动标题")) return;
 
-    // Extract title
-    const titleMatch = section.match(/\*\*活动标题\*\*[：:]\s*([^\\]+?)\\/);
+    // Extract title (using safeMatch for ReDoS protection)
+    const titleMatch = safeMatch(section, /\*\*活动标题\*\*[：:]\s*([^\\]+?)\\/);
     const title = titleMatch ? titleMatch[1].trim() : `Campaign ${index}`;
 
-    // Extract description (first line after 活动内容介绍)
-    const descMatch = section.match(/\*\*活动内容介绍\*\*[：:]\s*([^\n]+)/);
+    // Extract description (first line after 活动内容介绍) (using safeMatch for ReDoS protection)
+    const descMatch = safeMatch(section, /\*\*活动内容介绍\*\*[：:]\s*([^\n]+)/);
     const description = descMatch ? descMatch[1].trim() : "";
 
-    // Extract image URL
-    const imgMatch = section.match(/<img\s+src="([^"]+)"/);
+    // Extract image URL (using safeMatch for ReDoS protection)
+    const imgMatch = safeMatch(section, /<img\s+src="([^"]+)"/);
     const imageUrl = imgMatch ? imgMatch[1] : null;
 
     campaigns.push({

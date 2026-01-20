@@ -26,5 +26,8 @@ export const useCampaigns = (options: UseCampaignsOptions = {}) =>
   useQuery({
     queryKey: ["campaigns", options.date ?? "all"],
     queryFn: () => campaignsFetcher(options.date),
-    staleTime: 1000 * 60 * 10,
+    staleTime: 1000 * 60 * 5, // Consider fresh for 5 minutes (matches API revalidate)
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });

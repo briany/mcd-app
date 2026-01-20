@@ -6,7 +6,8 @@ import { requireAuth } from "@/lib/authHelpers";
 import { withRateLimit } from "@/lib/withRateLimit";
 import { validateQuery, campaignQuerySchema } from "@/lib/validation";
 
-export const revalidate = 0;
+// Cache campaigns for 5 minutes (300 seconds)
+export const revalidate = 300;
 
 export const GET = withRateLimit(async (request: NextRequest) => {
   try {

@@ -5,7 +5,8 @@ import { handleApiError } from "@/lib/api";
 import { requireAuth } from "@/lib/authHelpers";
 import { withRateLimit } from "@/lib/withRateLimit";
 
-export const revalidate = 0;
+// Cache available coupons for 1 minute (60 seconds)
+export const revalidate = 60;
 
 export const GET = withRateLimit(async () => {
   try {
