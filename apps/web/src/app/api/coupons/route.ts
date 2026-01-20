@@ -9,7 +9,7 @@ export const revalidate = 0;
 export const GET = async () => {
   try {
     // Check authentication
-    const { error, session } = await requireAuth();
+    const { error } = await requireAuth();
     if (error) return error;
 
     const data = await mcpClient.getCoupons();

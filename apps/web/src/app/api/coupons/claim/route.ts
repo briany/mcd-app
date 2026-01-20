@@ -15,7 +15,7 @@ import { withCsrf } from "@/lib/withCsrf";
 export const POST = withCsrf(async (request: NextRequest) => {
   try {
     // Check authentication
-    const { error, session } = await requireAuth();
+    const { error } = await requireAuth();
     if (error) return error;
 
     const { couponId } = await request.json();

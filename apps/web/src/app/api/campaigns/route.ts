@@ -9,7 +9,7 @@ export const revalidate = 0;
 export const GET = async (request: Request) => {
   try {
     // Check authentication
-    const { error, session } = await requireAuth();
+    const { error } = await requireAuth();
     if (error) return error;
 
     const { searchParams } = new URL(request.url);

@@ -17,7 +17,7 @@ vi.mock("@/lib/authHelpers", () => ({
 }));
 
 vi.mock("@/lib/withCsrf", () => ({
-  withCsrf: (handler: any) => handler,
+  withCsrf: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
 }));
 
 vi.mock("@/lib/mcpClient", () => ({

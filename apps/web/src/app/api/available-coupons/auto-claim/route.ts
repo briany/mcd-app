@@ -5,10 +5,10 @@ import { handleApiError } from "@/lib/api";
 import { requireAuth } from "@/lib/authHelpers";
 import { withCsrf } from "@/lib/withCsrf";
 
-export const POST = withCsrf(async (request: NextRequest) => {
+export const POST = withCsrf(async (_request: NextRequest) => {
   try {
     // Check authentication
-    const { error, session } = await requireAuth();
+    const { error } = await requireAuth();
     if (error) return error;
 
     const result = await mcpClient.autoClaimCoupons();

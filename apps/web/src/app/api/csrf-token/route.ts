@@ -3,7 +3,7 @@ import { generateCsrfToken } from "@/lib/csrf";
 import { requireAuth } from "@/lib/authHelpers";
 
 export const GET = async () => {
-  const { error, session } = await requireAuth();
+  const { error } = await requireAuth();
   if (error) return error;
 
   const token = await generateCsrfToken();
