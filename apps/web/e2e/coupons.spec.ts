@@ -24,17 +24,14 @@ const campaignsFixture = {
   date: "2099-04-01",
 };
 
-test.beforeEach(async ({ page }) => {
-  await page.route("**/api/coupons", (route) => route.fulfill({ json: couponsFixture }));
-  await page.route("**/api/available-coupons", (route) => route.fulfill({ json: couponsFixture }));
-  await page.route("**/api/available-coupons/auto-claim", (route) =>
-    route.fulfill({ json: { success: true, claimed: 2, message: "ok" } })
-  );
-  await page.route("**/api/campaigns", (route) => route.fulfill({ json: campaignsFixture }));
-  await page.route("**/api/coupons/claim", (route) => route.fulfill({ json: { success: true, claimed: 1, message: "claimed" } }));
-});
+// Note: We don't use test.beforeEach for routes because Playwright uses the first registered
+// handler, so tests that need custom fixtures wouldn't be able to override. Each test sets up
+// its own routes as needed.
 
 test("dashboard renders summary cards", async ({ page }) => {
+  await page.route("**/api/coupons", (route) => route.fulfill({ json: couponsFixture }));
+  await page.route("**/api/available-coupons", (route) => route.fulfill({ json: couponsFixture }));
+  await page.route("**/api/campaigns", (route) => route.fulfill({ json: campaignsFixture }));
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Mission Control" })).toBeVisible();
@@ -135,6 +132,7 @@ test.describe("Auto-claim Coupons", () => {
   test("auto-claims all available coupons", async ({ page }) => {
     let autoClaimCalled = false;
 
+    await page.route("**/api/available-coupons", (route) => route.fulfill({ json: couponsFixture }));
     await page.route("**/api/available-coupons/auto-claim", (route) => {
       autoClaimCalled = true;
       route.fulfill({ json: { success: true, claimed: 2, message: "Successfully claimed 2 coupons" } });
@@ -154,6 +152,7 @@ test.describe("Auto-claim Coupons", () => {
   });
 
   test("auto-claim button is available on available coupons page", async ({ page }) => {
+    await page.route("**/api/available-coupons", (route) => route.fulfill({ json: couponsFixture }));
     await page.goto("/available");
 
     // Verify page loads successfully
@@ -282,6 +281,7 @@ test.describe("Error States", () => {
   });
 
   test("handles claim coupon API failure gracefully", async ({ page }) => {
+    await page.route("**/api/available-coupons", (route) => route.fulfill({ json: couponsFixture }));
     await page.route("**/api/coupons/claim", (route) => {
       route.fulfill({
         status: 400,

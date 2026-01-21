@@ -32,15 +32,14 @@ function addSecurityHeaders(response: NextResponse, req: NextRequest) {
   );
 
   // Content Security Policy
+  // Note: Next.js requires 'unsafe-inline' for hydration scripts.
+  // For stricter CSP, implement nonces via next.config.js headers.
+  // See: https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy
   const csp = [
     "default-src 'self'",
-    // Allow unsafe-eval and unsafe-inline for Next.js development
-    process.env.NODE_ENV === "production"
-      ? "script-src 'self'"
-      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    process.env.NODE_ENV === "production"
-      ? "style-src 'self'"
-      : "style-src 'self' 'unsafe-inline'",
+    // Next.js requires unsafe-inline for hydration and inline scripts
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https://mcd-portal-prod-cos1-1300270282.cos.ap-shanghai.myqcloud.com https://cms-cdn.mcd.cn https://img.mcd.cn data:",
     "font-src 'self' data:",
     "connect-src 'self'",
