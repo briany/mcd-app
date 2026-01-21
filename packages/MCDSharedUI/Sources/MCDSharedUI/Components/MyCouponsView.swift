@@ -32,7 +32,7 @@ public struct MyCouponsView: View {
                 } else {
                     // List State
                     ScrollView {
-                        LazyVStack(spacing: 12) {
+                        VStack(spacing: 12) {
                             ForEach(viewModel.myCoupons) { coupon in
                                 CouponCardView(coupon: coupon)
                             }
