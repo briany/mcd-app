@@ -1,9 +1,10 @@
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://127.0.0.1:3000",
   "https://mcd-app.example.com", // Replace with actual production domain
 ];
 
@@ -14,74 +15,89 @@ function setCorsHeaders(response: NextResponse, origin: string | null) {
   }
 }
 
-export default withAuth(
-  function middleware(req: NextRequest) {
-    const response = NextResponse.next();
-    const origin = req.headers.get("origin");
+function addSecurityHeaders(response: NextResponse, req: NextRequest) {
+  // Prevent clickjacking
+  response.headers.set("X-Frame-Options", "DENY");
 
-    // CORS headers
-    setCorsHeaders(response, origin);
+  // Prevent MIME sniffing
+  response.headers.set("X-Content-Type-Options", "nosniff");
 
-    // Security Headers
+  // Control referrer information
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
-    // Prevent clickjacking
-    response.headers.set("X-Frame-Options", "DENY");
+  // Restrict browser features
+  response.headers.set(
+    "Permissions-Policy",
+    "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
+  );
 
-    // Prevent MIME sniffing
-    response.headers.set("X-Content-Type-Options", "nosniff");
+  // Content Security Policy
+  const csp = [
+    "default-src 'self'",
+    // Allow unsafe-eval and unsafe-inline for Next.js development
+    process.env.NODE_ENV === "production"
+      ? "script-src 'self'"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    process.env.NODE_ENV === "production"
+      ? "style-src 'self'"
+      : "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' https://mcd-portal-prod-cos1-1300270282.cos.ap-shanghai.myqcloud.com https://cms-cdn.mcd.cn https://img.mcd.cn data:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ");
+  response.headers.set("Content-Security-Policy", csp);
 
-    // Control referrer information
-    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-
-    // Restrict browser features
+  // HSTS (only for HTTPS)
+  if (req.nextUrl.protocol === "https:") {
     response.headers.set(
-      "Permissions-Policy",
-      "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains; preload"
     );
-
-    // Content Security Policy
-    const csp = [
-      "default-src 'self'",
-      // Allow unsafe-eval and unsafe-inline for Next.js development
-      process.env.NODE_ENV === "production"
-        ? "script-src 'self'"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      process.env.NODE_ENV === "production"
-        ? "style-src 'self'"
-        : "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' https://mcd-portal-prod-cos1-1300270282.cos.ap-shanghai.myqcloud.com https://cms-cdn.mcd.cn https://img.mcd.cn data:",
-      "font-src 'self' data:",
-      "connect-src 'self'",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join("; ");
-    response.headers.set("Content-Security-Policy", csp);
-
-    // HSTS (only for HTTPS)
-    if (req.nextUrl.protocol === "https:") {
-      response.headers.set(
-        "Strict-Transport-Security",
-        "max-age=31536000; includeSubDomains; preload"
-      );
-    }
-
-    return response;
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
   }
-);
+}
+
+// Protected API routes that require authentication
+const protectedApiRoutes = [
+  "/api/coupons",
+  "/api/available-coupons",
+  "/api/campaigns",
+];
+
+function isProtectedApiRoute(pathname: string): boolean {
+  return protectedApiRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
+export async function middleware(req: NextRequest) {
+  const response = NextResponse.next();
+  const origin = req.headers.get("origin");
+  const pathname = req.nextUrl.pathname;
+
+  // CORS headers
+  setCorsHeaders(response, origin);
+
+  // Security headers for all routes
+  addSecurityHeaders(response, req);
+
+  // Only check auth for protected API routes
+  if (isProtectedApiRoute(pathname)) {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  return response;
+}
 
 export const config = {
   matcher: [
-    // Protect all API routes except auth endpoints
-    "/api/coupons/:path*",
-    "/api/available-coupons/:path*",
-    "/api/campaigns/:path*",
-    // Protect all pages except auth pages, static files, and public assets
-    "/((?!api/auth|auth|_next/static|_next/image|favicon.ico).*)",
+    // Apply middleware to API routes and pages (for security headers)
+    // Exclude static files and Next.js internals
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };
