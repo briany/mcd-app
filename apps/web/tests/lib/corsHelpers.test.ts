@@ -1,6 +1,11 @@
-import { describe, it, expect } from "vitest";
-import { handleCorsPreFlight } from "@/lib/corsHelpers";
+import { describe, it, expect, vi } from "vitest";
 import { NextRequest } from "next/server";
+
+vi.mock("@/lib/config", () => ({
+  allowedOrigins: ["http://localhost:3000"],
+}));
+
+import { handleCorsPreFlight } from "@/lib/corsHelpers";
 
 describe("corsHelpers", () => {
   describe("handleCorsPreFlight", () => {

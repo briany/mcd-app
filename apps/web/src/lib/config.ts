@@ -34,3 +34,12 @@ export const mcpConfig = {
     Authorization: `Bearer ${getMcpToken()}`,
   }),
 };
+
+/**
+ * Allowed CORS origins for API requests
+ */
+export const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https://mcd-app.example.com", // Replace with actual production domain
+];

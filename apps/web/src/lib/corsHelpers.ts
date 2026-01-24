@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://mcd-app.example.com", // Replace with actual production domain
-];
+import { allowedOrigins } from "@/lib/config";
 
 export function handleCorsPreFlight(request: NextRequest): NextResponse {
   const origin = request.headers.get("origin");

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { NextRequest } from "next/server";
 import { GET } from "@/app/api/campaigns/route";
 import { mockCampaignListResponse, mock404Error, mock500Error } from "../mocks/mcpClient";
 
 vi.mock("@/lib/config", () => ({
   getMcpBaseUrl: vi.fn(() => "https://api.example.com"),
   getMcpToken: vi.fn(() => "test-token-123"),
+  allowedOrigins: ["http://localhost:3000"],
 }));
 
 vi.mock("@/lib/authHelpers", () => ({
@@ -16,18 +18,8 @@ vi.mock("@/lib/authHelpers", () => ({
   ),
 }));
 
-vi.mock("@/lib/ratelimit", () => ({
-  rateLimiters: {
-    api: {
-      limit: vi.fn(async () => ({
-        success: true,
-        limit: 100,
-        remaining: 99,
-        reset: Date.now() + 60000,
-      })),
-    },
-  },
-  getRateLimitIdentifier: vi.fn(() => "ip:127.0.0.1"),
+vi.mock("@/lib/withRateLimit", () => ({
+  withRateLimit: vi.fn((handler) => handler),
 }));
 
 vi.mock("@/lib/mcpClient", () => ({
@@ -54,11 +46,9 @@ describe("GET /api/campaigns", () => {
     vi.clearAllMocks();
   });
 
-  const createRequest = (url: string): Request => {
-    return {
-      url,
-    } as Request;
-  };
+  function createRequest(url: string): NextRequest {
+    return new NextRequest(url);
+  }
 
   it("returns campaign data without date parameter", async () => {
     vi.mocked(mcpClient.getCampaigns).mockResolvedValue(mockCampaignListResponse);

@@ -20,26 +20,18 @@ declare module "next-auth/jwt" {
 
 // Validate NEXTAUTH_SECRET at module load time
 const secret = process.env.NEXTAUTH_SECRET;
+const SECRET_HELP = "Generate one with: openssl rand -base64 32";
 
 if (!secret) {
-  throw new Error(
-    "NEXTAUTH_SECRET environment variable is not set. " +
-    "Generate one with: openssl rand -base64 32"
-  );
+  throw new Error(`NEXTAUTH_SECRET environment variable is not set. ${SECRET_HELP}`);
 }
 
 if (secret.includes("your-secret-key-here")) {
-  throw new Error(
-    "NEXTAUTH_SECRET is still set to the placeholder value. " +
-    "Generate a secure secret with: openssl rand -base64 32"
-  );
+  throw new Error(`NEXTAUTH_SECRET is still set to the placeholder value. ${SECRET_HELP}`);
 }
 
 if (secret.length < 32) {
-  throw new Error(
-    "NEXTAUTH_SECRET is too short. Must be at least 32 characters. " +
-    "Generate one with: openssl rand -base64 32"
-  );
+  throw new Error(`NEXTAUTH_SECRET is too short. Must be at least 32 characters. ${SECRET_HELP}`);
 }
 
 export const authOptions: NextAuthOptions = {

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { NextRequest } from "next/server";
 import { GET } from "@/app/api/available-coupons/route";
 import { mockCouponListResponse, mock404Error, mock500Error } from "../mocks/mcpClient";
 
 vi.mock("@/lib/config", () => ({
   getMcpBaseUrl: vi.fn(() => "https://api.example.com"),
   getMcpToken: vi.fn(() => "test-token-123"),
+  allowedOrigins: ["http://localhost:3000"],
 }));
 
 vi.mock("@/lib/authHelpers", () => ({
@@ -14,6 +16,10 @@ vi.mock("@/lib/authHelpers", () => ({
       session: { user: { id: "1", name: "Test User" } },
     })
   ),
+}));
+
+vi.mock("@/lib/withRateLimit", () => ({
+  withRateLimit: vi.fn((handler) => handler),
 }));
 
 vi.mock("@/lib/mcpClient", () => ({
@@ -36,6 +42,8 @@ vi.mock("@/lib/mcpClient", () => ({
 const { mcpClient } = await import("@/lib/mcpClient");
 
 describe("GET /api/available-coupons", () => {
+  const mockRequest = new NextRequest("http://localhost/api/available-coupons");
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -43,7 +51,7 @@ describe("GET /api/available-coupons", () => {
   it("returns available coupon data on success", async () => {
     vi.mocked(mcpClient.getAvailableCoupons).mockResolvedValue(mockCouponListResponse);
 
-    const response = await GET();
+    const response = await GET(mockRequest);
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -54,7 +62,7 @@ describe("GET /api/available-coupons", () => {
   it("handles McpClientError with 404 status", async () => {
     vi.mocked(mcpClient.getAvailableCoupons).mockRejectedValue(mock404Error());
 
-    const response = await GET();
+    const response = await GET(mockRequest);
     const data = await response.json();
 
     expect(response.status).toBe(404);
@@ -66,7 +74,7 @@ describe("GET /api/available-coupons", () => {
   it("handles McpClientError with 500 status", async () => {
     vi.mocked(mcpClient.getAvailableCoupons).mockRejectedValue(mock500Error());
 
-    const response = await GET();
+    const response = await GET(mockRequest);
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -79,7 +87,7 @@ describe("GET /api/available-coupons", () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(mcpClient.getAvailableCoupons).mockRejectedValue(new Error("Network failure"));
 
-    const response = await GET();
+    const response = await GET(mockRequest);
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -101,7 +109,7 @@ describe("GET /api/available-coupons", () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(mcpClient.getAvailableCoupons).mockRejectedValue(undefined);
 
-    const response = await GET();
+    const response = await GET(mockRequest);
     const data = await response.json();
 
     expect(response.status).toBe(500);

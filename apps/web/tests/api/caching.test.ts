@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from "vitest";
 vi.mock("@/lib/config", () => ({
   getMcpBaseUrl: vi.fn(() => "https://api.example.com"),
   getMcpToken: vi.fn(() => "test-token-123"),
+  allowedOrigins: ["http://localhost:3000"],
 }));
 
 vi.mock("@/lib/authHelpers", () => ({
