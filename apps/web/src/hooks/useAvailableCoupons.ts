@@ -2,25 +2,31 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AutoClaimResponse, CouponListResponse } from "@/lib/types";
+import { handleFetchError } from "@/lib/fetchUtils";
 import { useCsrf } from "./useCsrf";
 
-const availableFetcher = async (): Promise<CouponListResponse> => {
+async function fetchAvailableCoupons(): Promise<CouponListResponse> {
   const response = await fetch("/api/available-coupons");
   if (!response.ok) {
-    throw new Error(`Failed to load available coupons (${response.status})`);
+    await handleFetchError(response, "Failed to load available coupons");
   }
-  return (await response.json()) as CouponListResponse;
-};
+  return response.json();
+}
 
-export const useAvailableCoupons = () => {
+export function useAvailableCoupons() {
   const queryClient = useQueryClient();
   const { getCsrfHeaders } = useCsrf();
 
+  const invalidateCouponQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["available-coupons"] });
+    queryClient.invalidateQueries({ queryKey: ["coupons"] });
+  };
+
   const query = useQuery({
     queryKey: ["available-coupons"],
-    queryFn: availableFetcher,
-    staleTime: 1000 * 60, // Consider fresh for 1 minute
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    queryFn: fetchAvailableCoupons,
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
@@ -33,24 +39,13 @@ export const useAvailableCoupons = () => {
         headers: getCsrfHeaders(),
       });
 
-      if (response.status === 429) {
-        const retryAfter = response.headers.get("Retry-After");
-        throw new Error(
-          `Too many requests. Please try again in ${retryAfter} seconds.`
-        );
-      }
-
       if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || `Failed to auto-claim coupons (${response.status})`);
+        await handleFetchError(response, "Failed to auto-claim coupons");
       }
 
-      return (await response.json()) as AutoClaimResponse;
+      return response.json() as Promise<AutoClaimResponse>;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["available-coupons"] });
-      queryClient.invalidateQueries({ queryKey: ["coupons"] });
-    },
+    onSuccess: invalidateCouponQueries,
   });
 
   const claimMutation = useMutation({
@@ -65,24 +60,13 @@ export const useAvailableCoupons = () => {
         body: JSON.stringify({ couponId }),
       });
 
-      if (response.status === 429) {
-        const retryAfter = response.headers.get("Retry-After");
-        throw new Error(
-          `Too many requests. Please try again in ${retryAfter} seconds.`
-        );
-      }
-
       if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || `Failed to claim coupon (${response.status})`);
+        await handleFetchError(response, "Failed to claim coupon");
       }
 
-      return (await response.json()) as AutoClaimResponse;
+      return response.json() as Promise<AutoClaimResponse>;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["available-coupons"] });
-      queryClient.invalidateQueries({ queryKey: ["coupons"] });
-    },
+    onSuccess: invalidateCouponQueries,
   });
 
   return {
@@ -92,4 +76,4 @@ export const useAvailableCoupons = () => {
     claimCoupon: claimMutation.mutateAsync,
     isClaiming: claimMutation.isPending,
   };
-};
+}

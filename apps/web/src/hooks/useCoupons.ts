@@ -2,25 +2,26 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AutoClaimResponse, CouponListResponse } from "@/lib/types";
+import { handleFetchError } from "@/lib/fetchUtils";
 import { useCsrf } from "./useCsrf";
 
-const couponsFetcher = async (): Promise<CouponListResponse> => {
+async function fetchCoupons(): Promise<CouponListResponse> {
   const response = await fetch("/api/coupons");
   if (!response.ok) {
-    throw new Error(`Failed to load coupons (${response.status})`);
+    await handleFetchError(response, "Failed to load coupons");
   }
-  return (await response.json()) as CouponListResponse;
-};
+  return response.json();
+}
 
-export const useCoupons = () => {
+export function useCoupons() {
   const queryClient = useQueryClient();
   const { getCsrfHeaders } = useCsrf();
 
   const query = useQuery({
     queryKey: ["coupons"],
-    queryFn: couponsFetcher,
-    staleTime: 1000 * 60, // Consider fresh for 1 minute
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    queryFn: fetchCoupons,
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
@@ -37,19 +38,11 @@ export const useCoupons = () => {
         body: JSON.stringify({ couponId }),
       });
 
-      if (response.status === 429) {
-        const retryAfter = response.headers.get("Retry-After");
-        throw new Error(
-          `Too many requests. Please try again in ${retryAfter} seconds.`
-        );
-      }
-
       if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || `Failed to claim coupon (${response.status})`);
+        await handleFetchError(response, "Failed to claim coupon");
       }
 
-      return (await response.json()) as AutoClaimResponse;
+      return response.json() as Promise<AutoClaimResponse>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coupons"] });
@@ -62,4 +55,4 @@ export const useCoupons = () => {
     claimCoupon: claimMutation.mutateAsync,
     isClaiming: claimMutation.isPending,
   };
-};
+}

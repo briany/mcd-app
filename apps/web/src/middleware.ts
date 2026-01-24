@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "https://mcd-app.example.com", // Replace with actual production domain
-];
+import { allowedOrigins } from "@/lib/config";
 
 function setCorsHeaders(response: NextResponse, origin: string | null) {
   if (origin && allowedOrigins.includes(origin)) {

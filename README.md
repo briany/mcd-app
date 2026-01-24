@@ -78,6 +78,37 @@ All applications require an MCP token. See individual app READMEs for platform-s
 
 See [Architecture Overview](docs/architecture/overview.md) for system design and [SPM Workspace Guide](docs/architecture/spm-workspace.md) for package structure.
 
+## Recent Changes
+
+### Security Enhancements (Web App)
+
+The web application has undergone a comprehensive 4-phase security overhaul:
+
+- **Phase 1 - Authentication & CSRF Protection**: Added NextAuth.js authentication with session management, CSRF token validation for state-changing operations, protected API routes, and a sign-in page
+- **Phase 2 - Rate Limiting & Input Validation**: Implemented API rate limiting with configurable thresholds, input validation schemas using Zod, and request body sanitization
+- **Phase 3 - Security Headers & Logging**: Added Content Security Policy (CSP), CORS protection, request body size limits, and structured security logging
+- **Phase 4 - Additional Hardening**: Implemented safe regex patterns to prevent ReDoS attacks, response caching headers, and client-side cache management
+
+### Test Coverage Improvements
+
+- **Web App**: Expanded test coverage from 12% to 70%+ with 72 passing unit tests
+- Added comprehensive API route tests, component tests, and hook tests
+- Implemented E2E tests using Playwright with security header verification
+- Added multi-layered lint error prevention system
+
+### CI/CD Enhancements
+
+- Added Claude Code GitHub workflow for automated assistance
+- Updated iOS simulator target to iPhone 16 Pro for builds
+- Added NEXTAUTH_SECRET environment variable for web builds and E2E tests
+- Fixed E2E test stability by separating auth from security headers
+
+### Platform-Specific Improvements
+
+- **iOS**: Fixed excessive spacing between coupon cards
+- **macOS**: Added Config.plist as bundled resource for easier dev setup
+- **Web**: Fixed Next.js inline scripts compatibility with CSP
+
 ## Development
 
 See [AGENTS.md](AGENTS.md) for development guidelines and coding standards.

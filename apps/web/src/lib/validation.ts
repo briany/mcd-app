@@ -33,32 +33,40 @@ export const paginationSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(200).default(20),
 });
 
+type ValidationResult<T> =
+  | { data: T; error: null }
+  | { data: null; error: NextResponse };
+
+/**
+ * Format Zod validation errors into a response
+ */
+function formatZodError(error: z.ZodError): NextResponse {
+  return NextResponse.json(
+    {
+      message: "Validation failed",
+      errors: error.issues.map((e) => ({
+        path: e.path.join("."),
+        message: e.message,
+      })),
+    },
+    { status: 400 }
+  );
+}
+
 /**
  * Helper to validate request body
  */
 export async function validateBody<T>(
   request: Request,
   schema: z.Schema<T>
-): Promise<{ data: T; error: null } | { data: null; error: NextResponse }> {
+): Promise<ValidationResult<T>> {
   try {
     const body = await request.json();
     const data = schema.parse(body);
     return { data, error: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return {
-        data: null,
-        error: NextResponse.json(
-          {
-            message: "Validation failed",
-            errors: error.issues.map((e) => ({
-              path: e.path.join("."),
-              message: e.message,
-            })),
-          },
-          { status: 400 }
-        ),
-      };
+      return { data: null, error: formatZodError(error) };
     }
     return {
       data: null,
@@ -76,26 +84,14 @@ export async function validateBody<T>(
 export function validateQuery<T>(
   searchParams: URLSearchParams,
   schema: z.Schema<T>
-): { data: T; error: null } | { data: null; error: NextResponse } {
+): ValidationResult<T> {
   try {
     const params = Object.fromEntries(searchParams.entries());
     const data = schema.parse(params);
     return { data, error: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return {
-        data: null,
-        error: NextResponse.json(
-          {
-            message: "Validation failed",
-            errors: error.issues.map((e) => ({
-              path: e.path.join("."),
-              message: e.message,
-            })),
-          },
-          { status: 400 }
-        ),
-      };
+      return { data: null, error: formatZodError(error) };
     }
     return {
       data: null,

@@ -2,32 +2,30 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { CampaignListResponse } from "@/lib/types";
+import { handleFetchError } from "@/lib/fetchUtils";
 
 export interface UseCampaignsOptions {
   date?: string; // yyyy-MM-dd filter
 }
 
-const campaignsFetcher = async (date?: string): Promise<CampaignListResponse> => {
-  const searchParams = new URLSearchParams();
-  if (date) {
-    searchParams.set("date", date);
-  }
-  const query = searchParams.toString();
-  const response = await fetch(`/api/campaigns${query ? `?${query}` : ""}`);
+async function fetchCampaigns(date?: string): Promise<CampaignListResponse> {
+  const url = date ? `/api/campaigns?date=${date}` : "/api/campaigns";
+  const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`Failed to load campaigns (${response.status})`);
+    await handleFetchError(response, "Failed to load campaigns");
   }
 
-  return (await response.json()) as CampaignListResponse;
-};
+  return response.json();
+}
 
-export const useCampaigns = (options: UseCampaignsOptions = {}) =>
-  useQuery({
+export function useCampaigns(options: UseCampaignsOptions = {}) {
+  return useQuery({
     queryKey: ["campaigns", options.date ?? "all"],
-    queryFn: () => campaignsFetcher(options.date),
-    staleTime: 1000 * 60 * 5, // Consider fresh for 5 minutes (matches API revalidate)
-    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
+    queryFn: () => fetchCampaigns(options.date),
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
+}
