@@ -1,5 +1,23 @@
 import { test, expect } from "@playwright/test";
 
+// Mock authenticated session for all tests
+const mockSession = {
+  user: {
+    id: "test-user-id",
+    name: "Test User",
+    email: "test@example.com",
+    image: null,
+  },
+  expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+};
+
+// Setup session mock before each test
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/auth/session", (route) =>
+    route.fulfill({ json: mockSession })
+  );
+});
+
 const couponsFixture = {
   coupons: [
     { id: "1", name: "Big Mac", expiryDate: "2099-01-01", status: "Active", imageUrl: null },

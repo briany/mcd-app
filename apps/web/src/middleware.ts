@@ -61,8 +61,26 @@ const protectedApiRoutes = [
   "/api/campaigns",
 ];
 
+// Protected pages that require authentication
+const protectedPages = ["/", "/coupons", "/available", "/campaigns"];
+
+// Public routes that don't require authentication
+const publicRoutes = ["/auth/signin", "/auth/error", "/api/auth"];
+
 function isProtectedApiRoute(pathname: string): boolean {
   return protectedApiRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
+function isProtectedPage(pathname: string): boolean {
+  return protectedPages.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
+function isPublicRoute(pathname: string): boolean {
+  return publicRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 }
@@ -78,11 +96,32 @@ export async function middleware(req: NextRequest) {
   // Security headers for all routes
   addSecurityHeaders(response, req);
 
-  // Only check auth for protected API routes
+  // Skip auth check for public routes
+  if (isPublicRoute(pathname)) {
+    return response;
+  }
+
+  // Skip auth in E2E test mode (controlled by environment variable)
+  const isE2ETest = process.env.E2E_TEST_MODE === "true";
+  if (isE2ETest) {
+    return response;
+  }
+
+  // Check auth for protected API routes
   if (isProtectedApiRoute(pathname)) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  // Check auth for protected pages - redirect to sign-in
+  if (isProtectedPage(pathname)) {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) {
+      const signInUrl = new URL("/auth/signin", req.url);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(signInUrl);
     }
   }
 

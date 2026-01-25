@@ -1,7 +1,10 @@
 import SwiftUI
 import MCDSharedUI
+import MCDCore
 
 struct ContentView: View {
+    @ObservedObject private var authManager = AuthManager.shared
+
     var body: some View {
         TabView {
             MyCouponsView()
@@ -17,6 +20,11 @@ struct ContentView: View {
             AvailableCouponsView()
                 .tabItem {
                     Label("Available", systemImage: "plus.circle.fill")
+                }
+
+            SettingsView(authManager: authManager)
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape.fill")
                 }
         }
     }

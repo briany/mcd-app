@@ -4,6 +4,9 @@ public enum MCDConfiguration {
     /// MCP Server Configuration
     public static let mcpBaseURL = "https://mcp.mcd.cn/mcp-servers/mcd-mcp"
 
+    /// Web App URL for OAuth flow
+    public static let webAppURL = "http://localhost:3000"
+
     /// Bearer Token - Read from environment variable or Config.plist
     public static var mcpToken: String {
         // First try environment variable
