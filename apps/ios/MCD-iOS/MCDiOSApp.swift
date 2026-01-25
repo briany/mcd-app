@@ -1,10 +1,17 @@
 import SwiftUI
+import MCDCore
 
 @main
 struct MCDiOSApp: App {
+    @StateObject private var authManager = AuthManager.shared
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if authManager.isAuthenticated {
+                ContentView()
+            } else {
+                SignInView()
+            }
         }
     }
 }

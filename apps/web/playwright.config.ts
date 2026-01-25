@@ -18,4 +18,11 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
+  // Start dev server with E2E_TEST_MODE to skip auth
+  webServer: {
+    command: "E2E_TEST_MODE=true npm run dev",
+    url: "http://127.0.0.1:3000",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
 });

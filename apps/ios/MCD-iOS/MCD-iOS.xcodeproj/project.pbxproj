@@ -11,6 +11,8 @@
 		1A000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000002 /* ContentView.swift */; };
 		1A000003 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000003 /* Config.swift */; };
 		1A000042 /* CampaignsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000042 /* CampaignsView.swift */; };
+		1A000043 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000043 /* SignInView.swift */; };
+		1A000044 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000044 /* SettingsView.swift */; };
 		D339DCB62F1D20DE002247E4 /* MCDCore in Frameworks */ = {isa = PBXBuildFile; productRef = D339DCB52F1D20DE002247E4 /* MCDCore */; };
 		D339DCB92F1D20FC002247E4 /* MCDSharedUI in Frameworks */ = {isa = PBXBuildFile; productRef = D339DCB82F1D20FC002247E4 /* MCDSharedUI */; };
 		D3DA56EC2F1C779D00E42B03 /* Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2A000005 /* Config.plist */; };
@@ -23,6 +25,8 @@
 		2A000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2A000005 /* Config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config.plist; sourceTree = "<group>"; };
 		2A000042 /* CampaignsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignsView.swift; sourceTree = "<group>"; };
+		2A000043 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		2A000044 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3A000001 /* MCD-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MCD-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -53,6 +57,8 @@
 				2A000001 /* MCDiOSApp.swift */,
 				2A000002 /* ContentView.swift */,
 				2A000003 /* Config.swift */,
+				2A000043 /* SignInView.swift */,
+				2A000044 /* SettingsView.swift */,
 				2A000004 /* Info.plist */,
 				2A000005 /* Config.plist */,
 				4A000040 /* Views */,
@@ -156,6 +162,8 @@
 				1A000002 /* ContentView.swift in Sources */,
 				1A000003 /* Config.swift in Sources */,
 				1A000042 /* CampaignsView.swift in Sources */,
+				1A000043 /* SignInView.swift in Sources */,
+				1A000044 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
