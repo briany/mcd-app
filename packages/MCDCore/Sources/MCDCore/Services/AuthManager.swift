@@ -172,8 +172,9 @@ public class AuthManager: ObservableObject {
 
         // NextAuth returns session token in callback
         guard let sessionToken = params["token"] ?? params["session_token"] else {
-            // For development: create a mock token if no token in callback
-            // In production, this would fail
+            #if DEBUG
+            // For development only: create a mock token if no token in callback
+            // This allows testing the auth flow without a real OAuth server
             return AuthToken(
                 accessToken: UUID().uuidString,
                 refreshToken: nil,
@@ -184,6 +185,9 @@ public class AuthManager: ObservableObject {
                 name: params["name"],
                 picture: params["picture"]
             )
+            #else
+            throw AuthError.invalidCallback
+            #endif
         }
 
         return AuthToken(
