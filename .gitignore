@@ -8,7 +8,7 @@
 !*.xcodeproj/xcshareddata/
 *.xcworkspace/*
 !*.xcworkspace/contents.xcworkspacedata
-!*.xcworkspace/xcshareddata/
+**/xcshareddata/swiftpm/
 .DS_Store
 xcuserdata/
 DerivedData/
@@ -39,7 +39,19 @@ DerivedData/
 # Internal documentation (keep local, not for public repo)
 docs/security-*.md
 docs/plans/
+docs/troubleshooting/
 
 # Claude Code configuration
 .claude/
 CLAUDE.md
+
+# Test artifacts
+apps/web/playwright-report/
+apps/web/test-results/
+
+# Code review requests
+.code-review-request.md
+
+# Root package files (monorepo uses workspace packages)
+/package.json
+/package-lock.json
