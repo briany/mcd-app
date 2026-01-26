@@ -83,3 +83,4 @@ jobs:
           MCD_MCP_TOKEN: dummy-token-for-e2e-tests
           NEXTAUTH_SECRET: ci-build-dummy-secret-not-for-production-use
           NEXTAUTH_URL: http://localhost:3000
+          E2E_TEST_MODE: "true"
