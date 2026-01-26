@@ -71,6 +71,18 @@
 				<string>mcdapp</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>Google Sign-In</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.758911613217-uo1bqccc7utd871e07n78oatf199b6bj</string>
+			</array>
+		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>758911613217-uo1bqccc7utd871e07n78oatf199b6bj.apps.googleusercontent.com</string>
 </dict>
 </plist>

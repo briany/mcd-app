@@ -7,8 +7,17 @@ let package = Package(
     products: [
         .library(name: "MCDCore", targets: ["MCDCore"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/google/GoogleSignIn-iOS", from: "8.0.0")
+    ],
     targets: [
-        .target(name: "MCDCore", path: "Sources/MCDCore"),
+        .target(
+            name: "MCDCore",
+            dependencies: [
+                .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS")
+            ],
+            path: "Sources/MCDCore"
+        ),
         .testTarget(name: "MCDCoreTests", dependencies: ["MCDCore"], path: "Tests/MCDCoreTests")
     ]
 )
