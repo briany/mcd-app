@@ -43,7 +43,7 @@ jobs:
       - name: Create Config.plist for build
         run: cp apps/ios/Config.plist.example apps/ios/MCD-iOS/Config.plist
       - name: Build iOS app
-        run: xcodebuild build -project apps/ios/MCD-iOS/MCD-iOS.xcodeproj -scheme MCD-iOS -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
+        run: xcodebuild build -project apps/ios/MCD-iOS/MCD-iOS.xcodeproj -scheme MCD-iOS -destination 'generic/platform=iOS Simulator'
 
   test-web:
     runs-on: ubuntu-latest
