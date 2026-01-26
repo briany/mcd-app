@@ -36,9 +36,10 @@ DerivedData/
 # IDE
 .vscode/
 
-# Security-sensitive documentation (internal analysis, vulnerabilities, implementation plans)
+# Internal documentation (keep local, not for public repo)
 docs/security-*.md
-docs/plans/**/task_plan.md
-docs/plans/**/findings.md
-docs/plans/**/progress.md
-docs/plans/*-security-*.md
+docs/plans/
+
+# Claude Code configuration
+.claude/
+CLAUDE.md
