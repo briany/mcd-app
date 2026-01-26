@@ -339,11 +339,15 @@ public class AuthManager: ObservableObject {
             expiresIn: deviceCode.expiresIn
         )
 
-        // Step 3: Get user info
-        let user = try await fetchGitHubUser(accessToken: tokenResponse.accessToken!)
+        // Step 3: Get user info - safely unwrap access token
+        guard let accessToken = tokenResponse.accessToken, !accessToken.isEmpty else {
+            throw AuthError.invalidCallback
+        }
+
+        let user = try await fetchGitHubUser(accessToken: accessToken)
 
         return AuthToken(
-            accessToken: tokenResponse.accessToken!,
+            accessToken: accessToken,
             refreshToken: nil,
             expiresAt: Date().addingTimeInterval(365 * 24 * 60 * 60), // GitHub tokens don't expire
             provider: AuthProvider.github.rawValue,
