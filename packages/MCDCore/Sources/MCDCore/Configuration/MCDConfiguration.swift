@@ -9,7 +9,8 @@ public enum MCDConfiguration {
     public static let webAppURL = "http://localhost:3000"
 
     /// Bearer Token - Read from environment variable or Config.plist
-    public static var mcpToken: String {
+    /// Returns nil if not configured (callers should handle gracefully)
+    public static var mcpToken: String? {
         // First try environment variable
         if let token = ProcessInfo.processInfo.environment["MCD_MCP_TOKEN"], !token.isEmpty {
             return token
@@ -20,14 +21,7 @@ public enum MCDConfiguration {
             return token
         }
 
-        // Fallback error - this should never be reached in production
-        fatalError("""
-            MCP Token not configured!
-
-            Please set the token in one of these ways:
-            1. Environment variable: export MCD_MCP_TOKEN=your_token_here
-            2. Run ./scripts/setup-config.sh and add your token to Config.plist
-            """)
+        return nil
     }
 
     private static func findTokenFromConfig() -> String? {

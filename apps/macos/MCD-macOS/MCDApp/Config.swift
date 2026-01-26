@@ -5,5 +5,5 @@ import MCDCore
 // All configuration logic now lives in MCDCore.MCDConfiguration
 enum Config {
     static let mcpBaseURL = MCDConfiguration.mcpBaseURL
-    static var mcpToken: String { MCDConfiguration.mcpToken }
+    static var mcpToken: String? { MCDConfiguration.mcpToken }
 }

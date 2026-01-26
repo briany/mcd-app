@@ -7,6 +7,7 @@ public enum MCPError: LocalizedError {
     case authenticationError
     case rateLimitExceeded
     case serverError(String)
+    case configurationError(String)
 
     public var errorDescription: String? {
         switch self {
@@ -22,6 +23,8 @@ public enum MCPError: LocalizedError {
             return "Rate limit exceeded. Please try again later."
         case .serverError(let message):
             return "Server error: \(message)"
+        case .configurationError(let message):
+            return "Configuration error: \(message)"
         }
     }
 }

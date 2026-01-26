@@ -121,12 +121,19 @@ public actor MCPClient {
     public static let shared = MCPClient()
 
     private let baseURL = MCDConfiguration.mcpBaseURL
-    private let token = MCDConfiguration.mcpToken
 
     private var cache: [String: (data: Data, timestamp: Date)] = [:]
     private let cacheExpiration: TimeInterval = 300 // 5 minutes
 
     private init() {}
+
+    /// Get the MCP token, throwing an error if not configured
+    private func getToken() throws -> String {
+        guard let token = MCDConfiguration.mcpToken else {
+            throw MCPError.configurationError("MCP Token not configured. Please add MCD_MCP_TOKEN to Config.plist or set it as an environment variable.")
+        }
+        return token
+    }
 
     // MARK: - Core Request Methods
 
@@ -142,6 +149,9 @@ public actor MCPClient {
            let markdown = String(data: cached.data, encoding: .utf8) {
             return markdown
         }
+
+        // Get token (throws if not configured)
+        let token = try getToken()
 
         // Build request
         var request = URLRequest(url: URL(string: baseURL)!)
@@ -206,6 +216,9 @@ public actor MCPClient {
             let decoder = JSONDecoder()
             return try decoder.decode(T.self, from: cached.data)
         }
+
+        // Get token (throws if not configured)
+        let token = try getToken()
 
         // Build request
         var request = URLRequest(url: URL(string: baseURL)!)
