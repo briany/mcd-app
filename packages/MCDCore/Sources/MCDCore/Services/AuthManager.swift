@@ -1,5 +1,11 @@
 import Foundation
 import AuthenticationServices
+#if canImport(GoogleSignIn)
+import GoogleSignIn
+#endif
+#if canImport(UIKit)
+import UIKit
+#endif
 
 public enum AuthProvider: String, Codable {
     case google
@@ -28,6 +34,8 @@ public enum AuthError: LocalizedError {
     case cancelled
     case keychainError(OSStatus)
     case networkError(Error)
+    case configurationError(String)
+    case deviceFlowError(String)
 
     public var errorDescription: String? {
         switch self {
@@ -43,7 +51,58 @@ public enum AuthError: LocalizedError {
             return "Keychain error: \(status)"
         case .networkError(let error):
             return "Network error: \(error.localizedDescription)"
+        case .configurationError(let message):
+            return "Configuration error: \(message)"
+        case .deviceFlowError(let message):
+            return message
         }
+    }
+}
+
+// MARK: - GitHub Device Flow Types
+
+private struct GitHubDeviceCodeResponse: Codable {
+    let deviceCode: String
+    let userCode: String
+    let verificationUri: String
+    let expiresIn: Int
+    let interval: Int
+
+    enum CodingKeys: String, CodingKey {
+        case deviceCode = "device_code"
+        case userCode = "user_code"
+        case verificationUri = "verification_uri"
+        case expiresIn = "expires_in"
+        case interval
+    }
+}
+
+private struct GitHubTokenResponse: Codable {
+    let accessToken: String?
+    let tokenType: String?
+    let scope: String?
+    let error: String?
+    let errorDescription: String?
+
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case tokenType = "token_type"
+        case scope
+        case error
+        case errorDescription = "error_description"
+    }
+}
+
+private struct GitHubUser: Codable {
+    let id: Int
+    let login: String
+    let name: String?
+    let email: String?
+    let avatarUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, login, name, email
+        case avatarUrl = "avatar_url"
     }
 }
 
@@ -53,6 +112,11 @@ public class AuthManager: ObservableObject {
     @Published public var currentUser: (id: String, email: String?, name: String?, picture: String?)? = nil
     @Published public var isLoading = false
     @Published public var errorMessage: String?
+
+    // GitHub Device Flow state
+    @Published public var deviceFlowUserCode: String?
+    @Published public var deviceFlowVerificationURL: String?
+    @Published public var isWaitingForDeviceAuth = false
 
     private let keychainService = "com.mcdapp.auth"
     private let tokenKey = "authToken"
@@ -74,14 +138,13 @@ public class AuthManager: ObservableObject {
         errorMessage = nil
 
         do {
-            // Build OAuth URL
-            let authURL = buildAuthURL(provider: provider)
-
-            // Present web authentication session
-            let callbackURL = try await presentWebAuth(url: authURL)
-
-            // Parse token from callback URL
-            let token = try parseCallback(url: callbackURL, provider: provider)
+            let token: AuthToken
+            switch provider {
+            case .google:
+                token = try await signInWithGoogle()
+            case .github:
+                token = try await signInWithGitHub()
+            }
 
             // Save to Keychain
             try saveToken(token)
@@ -96,9 +159,15 @@ public class AuthManager: ObservableObject {
         }
 
         isLoading = false
+        isWaitingForDeviceAuth = false
+        deviceFlowUserCode = nil
+        deviceFlowVerificationURL = nil
     }
 
     public func signOut() {
+        #if canImport(GoogleSignIn)
+        GIDSignIn.sharedInstance.signOut()
+        #endif
         deleteToken()
         isAuthenticated = false
         currentUser = nil
@@ -112,94 +181,215 @@ public class AuthManager: ObservableObject {
         return token.accessToken
     }
 
-    // MARK: - Private Methods
+    // MARK: - Google Sign-In
 
-    private func buildAuthURL(provider: AuthProvider) -> URL {
-        let baseURL = MCDConfiguration.webAppURL
-        let callbackScheme = "mcdapp"
-
-        // NextAuth OAuth URL - this triggers the OAuth flow
-        var components = URLComponents(string: "\(baseURL)/api/auth/signin/\(provider.rawValue)")!
-        components.queryItems = [
-            URLQueryItem(name: "callbackUrl", value: "\(callbackScheme)://auth/callback")
-        ]
-
-        return components.url!
-    }
-
-    private func presentWebAuth(url: URL) async throws -> URL {
-        try await withCheckedThrowingContinuation { continuation in
-            let session = ASWebAuthenticationSession(
-                url: url,
-                callbackURLScheme: "mcdapp"
-            ) { callbackURL, error in
-                if let error = error {
-                    if (error as NSError).code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
-                        continuation.resume(throwing: AuthError.cancelled)
-                    } else {
-                        continuation.resume(throwing: AuthError.networkError(error))
-                    }
-                    return
-                }
-
-                guard let callbackURL = callbackURL else {
-                    continuation.resume(throwing: AuthError.invalidCallback)
-                    return
-                }
-
-                continuation.resume(returning: callbackURL)
-            }
-
-            session.presentationContextProvider = WebAuthPresentationContext.shared
-            session.prefersEphemeralWebBrowserSession = false
-
-            if !session.start() {
-                continuation.resume(throwing: AuthError.invalidCallback)
-            }
-        }
-    }
-
-    private func parseCallback(url: URL, provider: AuthProvider) throws -> AuthToken {
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let queryItems = components.queryItems else {
-            throw AuthError.invalidCallback
+    private func signInWithGoogle() async throws -> AuthToken {
+        #if canImport(GoogleSignIn) && canImport(UIKit)
+        // Get Google Client ID from Info.plist or configuration
+        guard let clientID = getGoogleClientID() else {
+            throw AuthError.configurationError("Google Client ID not configured. Add GOOGLE_CLIENT_ID to Config.plist")
         }
 
-        let params = Dictionary(uniqueKeysWithValues: queryItems.compactMap { item -> (String, String)? in
-            guard let value = item.value else { return nil }
-            return (item.name, value)
-        })
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
 
-        // NextAuth returns session token in callback
-        guard let sessionToken = params["token"] ?? params["session_token"] else {
-            #if DEBUG
-            // For development only: create a mock token if no token in callback
-            // This allows testing the auth flow without a real OAuth server
-            return AuthToken(
-                accessToken: UUID().uuidString,
-                refreshToken: nil,
-                expiresAt: Date().addingTimeInterval(24 * 60 * 60), // 24 hours
-                provider: provider.rawValue,
-                userId: params["userId"] ?? UUID().uuidString,
-                email: params["email"],
-                name: params["name"],
-                picture: params["picture"]
-            )
-            #else
+        // Get the presenting view controller
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootViewController = windowScene.windows.first?.rootViewController else {
+            throw AuthError.configurationError("Unable to get root view controller")
+        }
+
+        // Perform sign in
+        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+        let user = result.user
+
+        guard let idToken = user.idToken?.tokenString else {
             throw AuthError.invalidCallback
-            #endif
         }
 
         return AuthToken(
-            accessToken: sessionToken,
-            refreshToken: params["refresh_token"],
-            expiresAt: Date().addingTimeInterval(24 * 60 * 60), // 24 hours
-            provider: provider.rawValue,
-            userId: params["userId"] ?? UUID().uuidString,
-            email: params["email"],
-            name: params["name"],
-            picture: params["picture"]
+            accessToken: user.accessToken.tokenString,
+            refreshToken: user.refreshToken.tokenString,
+            expiresAt: user.accessToken.expirationDate ?? Date().addingTimeInterval(3600),
+            provider: AuthProvider.google.rawValue,
+            userId: user.userID ?? UUID().uuidString,
+            email: user.profile?.email,
+            name: user.profile?.name,
+            picture: user.profile?.imageURL(withDimension: 200)?.absoluteString
         )
+        #else
+        throw AuthError.configurationError("Google Sign-In not available on this platform")
+        #endif
+    }
+
+    private func getGoogleClientID() -> String? {
+        // Try Config.plist first
+        if let configPath = Bundle.main.path(forResource: "Config", ofType: "plist"),
+           let config = NSDictionary(contentsOfFile: configPath),
+           let clientID = config["GOOGLE_CLIENT_ID"] as? String,
+           !clientID.isEmpty,
+           clientID != "YOUR_GOOGLE_CLIENT_ID" {
+            return clientID
+        }
+
+        // Try environment variable
+        if let clientID = ProcessInfo.processInfo.environment["GOOGLE_CLIENT_ID"],
+           !clientID.isEmpty {
+            return clientID
+        }
+
+        // Try Info.plist (where Google recommends storing it)
+        if let clientID = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String,
+           !clientID.isEmpty {
+            return clientID
+        }
+
+        return nil
+    }
+
+    // MARK: - GitHub Device Flow
+
+    /// GitHub OAuth using Device Authorization Flow
+    /// This flow doesn't require a client secret in the app - more secure for mobile
+    private func signInWithGitHub() async throws -> AuthToken {
+        guard let clientID = getGitHubClientID() else {
+            throw AuthError.configurationError("GitHub Client ID not configured. Add GITHUB_CLIENT_ID to Config.plist")
+        }
+
+        // Step 1: Request device code
+        let deviceCode = try await requestGitHubDeviceCode(clientID: clientID)
+
+        // Update UI with user code for display
+        await MainActor.run {
+            self.deviceFlowUserCode = deviceCode.userCode
+            self.deviceFlowVerificationURL = deviceCode.verificationUri
+            self.isWaitingForDeviceAuth = true
+        }
+
+        // Open verification URL in browser
+        #if canImport(UIKit)
+        if let url = URL(string: deviceCode.verificationUri) {
+            await UIApplication.shared.open(url)
+        }
+        #endif
+
+        // Step 2: Poll for token
+        let tokenResponse = try await pollForGitHubToken(
+            clientID: clientID,
+            deviceCode: deviceCode.deviceCode,
+            interval: deviceCode.interval,
+            expiresIn: deviceCode.expiresIn
+        )
+
+        // Step 3: Get user info
+        let user = try await fetchGitHubUser(accessToken: tokenResponse.accessToken!)
+
+        return AuthToken(
+            accessToken: tokenResponse.accessToken!,
+            refreshToken: nil,
+            expiresAt: Date().addingTimeInterval(365 * 24 * 60 * 60), // GitHub tokens don't expire
+            provider: AuthProvider.github.rawValue,
+            userId: String(user.id),
+            email: user.email,
+            name: user.name ?? user.login,
+            picture: user.avatarUrl
+        )
+    }
+
+    private func getGitHubClientID() -> String? {
+        // Try Config.plist first
+        if let configPath = Bundle.main.path(forResource: "Config", ofType: "plist"),
+           let config = NSDictionary(contentsOfFile: configPath),
+           let clientID = config["GITHUB_CLIENT_ID"] as? String,
+           !clientID.isEmpty,
+           clientID != "YOUR_GITHUB_CLIENT_ID" {
+            return clientID
+        }
+
+        // Try environment variable
+        if let clientID = ProcessInfo.processInfo.environment["GITHUB_CLIENT_ID"],
+           !clientID.isEmpty {
+            return clientID
+        }
+
+        return nil
+    }
+
+    private func requestGitHubDeviceCode(clientID: String) async throws -> GitHubDeviceCodeResponse {
+        var request = URLRequest(url: URL(string: "https://github.com/login/device/code")!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+        let body = "client_id=\(clientID)&scope=user:email"
+        request.httpBody = body.data(using: .utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw AuthError.networkError(NSError(domain: "GitHub", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to request device code"]))
+        }
+
+        return try JSONDecoder().decode(GitHubDeviceCodeResponse.self, from: data)
+    }
+
+    private func pollForGitHubToken(clientID: String, deviceCode: String, interval: Int, expiresIn: Int) async throws -> GitHubTokenResponse {
+        let startTime = Date()
+        let expirationDate = startTime.addingTimeInterval(TimeInterval(expiresIn))
+        var pollInterval = TimeInterval(interval)
+
+        while Date() < expirationDate {
+            try await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+
+            var request = URLRequest(url: URL(string: "https://github.com/login/oauth/access_token")!)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+            let body = "client_id=\(clientID)&device_code=\(deviceCode)&grant_type=urn:ietf:params:oauth:grant-type:device_code"
+            request.httpBody = body.data(using: .utf8)
+
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let tokenResponse = try JSONDecoder().decode(GitHubTokenResponse.self, from: data)
+
+            if let accessToken = tokenResponse.accessToken, !accessToken.isEmpty {
+                return tokenResponse
+            }
+
+            if let error = tokenResponse.error {
+                switch error {
+                case "authorization_pending":
+                    // User hasn't completed auth yet, keep polling
+                    continue
+                case "slow_down":
+                    // GitHub wants us to slow down
+                    pollInterval += 5
+                    continue
+                case "expired_token":
+                    throw AuthError.deviceFlowError("Authentication timed out. Please try again.")
+                case "access_denied":
+                    throw AuthError.cancelled
+                default:
+                    throw AuthError.deviceFlowError(tokenResponse.errorDescription ?? error)
+                }
+            }
+        }
+
+        throw AuthError.deviceFlowError("Authentication timed out. Please try again.")
+    }
+
+    private func fetchGitHubUser(accessToken: String) async throws -> GitHubUser {
+        var request = URLRequest(url: URL(string: "https://api.github.com/user")!)
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw AuthError.networkError(NSError(domain: "GitHub", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch user info"]))
+        }
+
+        return try JSONDecoder().decode(GitHubUser.self, from: data)
     }
 
     // MARK: - Keychain Helpers
@@ -253,22 +443,5 @@ public class AuthManager: ObservableObject {
         ]
 
         SecItemDelete(query as CFDictionary)
-    }
-}
-
-// MARK: - Presentation Context Provider
-
-private class WebAuthPresentationContext: NSObject, ASWebAuthenticationPresentationContextProviding {
-    static let shared = WebAuthPresentationContext()
-
-    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        #if os(iOS)
-        return UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow } ?? ASPresentationAnchor()
-        #else
-        return NSApplication.shared.windows.first ?? ASPresentationAnchor()
-        #endif
     }
 }

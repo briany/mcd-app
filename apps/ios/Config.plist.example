@@ -4,5 +4,9 @@
 <dict>
     <key>MCD_MCP_TOKEN</key>
     <string>YOUR_TOKEN_HERE</string>
+    <key>GOOGLE_CLIENT_ID</key>
+    <string>YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com</string>
+    <key>GITHUB_CLIENT_ID</key>
+    <string>YOUR_GITHUB_CLIENT_ID</string>
 </dict>
 </plist>

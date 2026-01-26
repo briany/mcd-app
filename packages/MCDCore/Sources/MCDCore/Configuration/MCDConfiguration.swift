@@ -4,7 +4,8 @@ public enum MCDConfiguration {
     /// MCP Server Configuration
     public static let mcpBaseURL = "https://mcp.mcd.cn/mcp-servers/mcd-mcp"
 
-    /// Web App URL for OAuth flow
+    /// Web App URL (deprecated - OAuth now uses direct provider authentication)
+    @available(*, deprecated, message: "OAuth now uses direct provider SDKs, not web app")
     public static let webAppURL = "http://localhost:3000"
 
     /// Bearer Token - Read from environment variable or Config.plist
