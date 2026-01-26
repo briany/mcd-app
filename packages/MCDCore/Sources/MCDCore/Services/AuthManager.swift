@@ -6,6 +6,9 @@ import GoogleSignIn
 #if canImport(UIKit)
 import UIKit
 #endif
+#if canImport(AppKit)
+import AppKit
+#endif
 
 public enum AuthProvider: String, Codable {
     case google
@@ -184,7 +187,7 @@ public class AuthManager: ObservableObject {
     // MARK: - Google Sign-In
 
     private func signInWithGoogle() async throws -> AuthToken {
-        #if canImport(GoogleSignIn) && canImport(UIKit)
+        #if canImport(GoogleSignIn)
         // Get Google Client ID from Info.plist or configuration
         guard let clientID = getGoogleClientID() else {
             throw AuthError.configurationError("Google Client ID not configured. Add GOOGLE_CLIENT_ID to Config.plist")
@@ -193,7 +196,8 @@ public class AuthManager: ObservableObject {
         let config = GIDConfiguration(clientID: clientID)
         GIDSignIn.sharedInstance.configuration = config
 
-        // Get the presenting view controller
+        #if canImport(UIKit)
+        // iOS: Get the presenting view controller
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else {
             throw AuthError.configurationError("Unable to get root view controller")
@@ -201,6 +205,18 @@ public class AuthManager: ObservableObject {
 
         // Perform sign in
         let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+        #elseif canImport(AppKit)
+        // macOS: Get the presenting window
+        guard let window = NSApplication.shared.windows.first else {
+            throw AuthError.configurationError("Unable to get presenting window")
+        }
+
+        // Perform sign in
+        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: window)
+        #else
+        throw AuthError.configurationError("Google Sign-In not available on this platform")
+        #endif
+
         let user = result.user
 
         guard let idToken = user.idToken?.tokenString else {
@@ -222,10 +238,50 @@ public class AuthManager: ObservableObject {
         #endif
     }
 
-    private func getGoogleClientID() -> String? {
-        // Try Config.plist first
+    // MARK: - Config Helpers
+
+    /// Find Config.plist from various sources (Bundle.main, all bundles, SPM resource bundles)
+    private func findConfigPlist() -> NSDictionary? {
+        // 1. Try Bundle.main (works for .app bundles)
         if let configPath = Bundle.main.path(forResource: "Config", ofType: "plist"),
-           let config = NSDictionary(contentsOfFile: configPath),
+           let config = NSDictionary(contentsOfFile: configPath) {
+            return config
+        }
+
+        // 2. Try all loaded bundles
+        for bundle in Bundle.allBundles {
+            if let configPath = bundle.path(forResource: "Config", ofType: "plist"),
+               let config = NSDictionary(contentsOfFile: configPath) {
+                return config
+            }
+        }
+
+        // 3. Try SPM resource bundle next to executable (for SPM executables)
+        let executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
+        let executableDir = executableURL.deletingLastPathComponent()
+
+        // SPM names resource bundles as "{PackageName}_{TargetName}.bundle"
+        let bundlePatterns = [
+            "MCD-macOS_MCDApp.bundle",
+            "MCD-iOS_MCDApp.bundle",
+            "MCDApp.bundle"
+        ]
+
+        for pattern in bundlePatterns {
+            let bundlePath = executableDir.appendingPathComponent(pattern)
+            if let bundle = Bundle(url: bundlePath),
+               let configPath = bundle.path(forResource: "Config", ofType: "plist"),
+               let config = NSDictionary(contentsOfFile: configPath) {
+                return config
+            }
+        }
+
+        return nil
+    }
+
+    private func getGoogleClientID() -> String? {
+        // Try Config.plist first (from various sources)
+        if let config = findConfigPlist(),
            let clientID = config["GOOGLE_CLIENT_ID"] as? String,
            !clientID.isEmpty,
            clientID != "YOUR_GOOGLE_CLIENT_ID" {
@@ -267,11 +323,13 @@ public class AuthManager: ObservableObject {
         }
 
         // Open verification URL in browser
-        #if canImport(UIKit)
         if let url = URL(string: deviceCode.verificationUri) {
+            #if canImport(UIKit)
             await UIApplication.shared.open(url)
+            #elseif canImport(AppKit)
+            NSWorkspace.shared.open(url)
+            #endif
         }
-        #endif
 
         // Step 2: Poll for token
         let tokenResponse = try await pollForGitHubToken(
@@ -297,9 +355,8 @@ public class AuthManager: ObservableObject {
     }
 
     private func getGitHubClientID() -> String? {
-        // Try Config.plist first
-        if let configPath = Bundle.main.path(forResource: "Config", ofType: "plist"),
-           let config = NSDictionary(contentsOfFile: configPath),
+        // Try Config.plist first (from various sources)
+        if let config = findConfigPlist(),
            let clientID = config["GITHUB_CLIENT_ID"] as? String,
            !clientID.isEmpty,
            clientID != "YOUR_GITHUB_CLIENT_ID" {

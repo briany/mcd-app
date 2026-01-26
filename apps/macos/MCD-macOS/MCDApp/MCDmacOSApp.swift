@@ -1,10 +1,17 @@
 import SwiftUI
+import MCDCore
 
 @main
 struct MCDmacOSApp: App {
+    @ObservedObject private var authManager = AuthManager.shared
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if authManager.isAuthenticated {
+                ContentView()
+            } else {
+                SignInView()
+            }
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
