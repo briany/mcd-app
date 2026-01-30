@@ -171,12 +171,16 @@ const parseCouponsMarkdown = (markdown: string): CouponListResponse => {
     const expiryMatch = safeMatch(section, /有效期[^:]*:\s*(\d{4}-\d{2}-\d{2})/);
     const expiryDate = expiryMatch ? expiryMatch[1] : new Date().toISOString().split("T")[0];
 
+    // Store full section as rawMarkdown (prepend ## header for proper rendering)
+    const rawMarkdown = `## ${section}`;
+
     coupons.push({
       id: `coupon-${index}`,
       name,
       imageUrl,
       expiryDate,
       status: "active",
+      rawMarkdown,
     });
   });
 

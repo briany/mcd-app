@@ -27,4 +27,29 @@ describe("CouponCard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Claim" }));
     expect(onCtaClick).toHaveBeenCalledWith(mockCoupon);
   });
+
+  it("invokes card click callback when clicked", () => {
+    const onCardClick = vi.fn();
+    render(<CouponCard coupon={mockCoupon} onCardClick={onCardClick} />);
+
+    fireEvent.click(screen.getByRole("article"));
+    expect(onCardClick).toHaveBeenCalledWith(mockCoupon);
+  });
+
+  it("does not invoke card click when CTA button is clicked", () => {
+    const onCtaClick = vi.fn();
+    const onCardClick = vi.fn();
+    render(
+      <CouponCard
+        coupon={mockCoupon}
+        ctaLabel="Claim"
+        onCtaClick={onCtaClick}
+        onCardClick={onCardClick}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Claim" }));
+    expect(onCtaClick).toHaveBeenCalledWith(mockCoupon);
+    expect(onCardClick).not.toHaveBeenCalled();
+  });
 });

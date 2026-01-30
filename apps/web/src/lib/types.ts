@@ -6,6 +6,7 @@ export interface Coupon {
   imageUrl?: string | null;
   expiryDate: string; // yyyy-MM-dd from MCP
   status: CouponStatus;
+  rawMarkdown?: string; // Full markdown content for detail view
 }
 
 export interface CouponListResponse {

@@ -8,11 +8,24 @@ interface CouponCardProps {
   coupon: Coupon;
   ctaLabel?: string;
   onCtaClick?: (coupon: Coupon) => void;
+  onCardClick?: (coupon: Coupon) => void;
   disabled?: boolean;
 }
 
-export const CouponCard = ({ coupon, ctaLabel, onCtaClick, disabled }: CouponCardProps) => (
-  <article className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+export const CouponCard = ({
+  coupon,
+  ctaLabel,
+  onCtaClick,
+  onCardClick,
+  disabled,
+}: CouponCardProps) => (
+  <article
+    onClick={() => onCardClick?.(coupon)}
+    className={cn(
+      "flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all",
+      onCardClick && "cursor-pointer hover:border-amber-300 hover:shadow-md active:scale-[0.98]"
+    )}
+  >
     <div className="flex items-start justify-between gap-4">
       <div>
         <p className="text-lg font-semibold text-slate-900">{coupon.name}</p>
@@ -32,7 +45,10 @@ export const CouponCard = ({ coupon, ctaLabel, onCtaClick, disabled }: CouponCar
     {ctaLabel ? (
       <button
         type="button"
-        onClick={() => onCtaClick?.(coupon)}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent card click when clicking CTA
+          onCtaClick?.(coupon);
+        }}
         disabled={disabled}
         className={cn(
           "rounded-full px-4 py-2 text-sm font-semibold transition",
