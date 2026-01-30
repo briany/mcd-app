@@ -3,16 +3,26 @@ import { formatDate, getStatus, statusStyles } from "@/lib/campaignUtils";
 
 interface CampaignListProps {
   campaigns: Campaign[];
+  onCampaignClick?: (campaign: Campaign) => void;
 }
 
-export const CampaignList = ({ campaigns }: CampaignListProps) => (
+export const CampaignList = ({ campaigns, onCampaignClick }: CampaignListProps) => (
   <div className="space-y-4">
     {campaigns.map((campaign) => {
       const status = getStatus(campaign);
       return (
         <article
           key={campaign.id}
-          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+          className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-amber-200 hover:shadow-md"
+          onClick={() => onCampaignClick?.(campaign)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onCampaignClick?.(campaign);
+            }
+          }}
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>

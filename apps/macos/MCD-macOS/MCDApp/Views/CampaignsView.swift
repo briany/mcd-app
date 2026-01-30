@@ -5,6 +5,7 @@ import MCDSharedUI
 struct CampaignsView: View {
     @StateObject private var viewModel = CampaignViewModel()
     @State private var searchText = ""
+    @State private var selectedCampaign: Campaign?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -59,6 +60,10 @@ struct CampaignsView: View {
                         LazyVStack(spacing: 12) {
                             ForEach(searchResults) { campaign in
                                 CampaignCardView(campaign: campaign)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        selectedCampaign = campaign
+                                    }
                             }
                         }
                         .padding()
@@ -90,6 +95,9 @@ struct CampaignsView: View {
         }
         .task {
             await viewModel.fetchCampaigns(for: viewModel.selectedDate)
+        }
+        .sheet(item: $selectedCampaign) { campaign in
+            CampaignDetailView(campaign: campaign)
         }
     }
 

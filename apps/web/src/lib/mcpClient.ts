@@ -211,6 +211,9 @@ const parseCampaignsMarkdown = (markdown: string, date: string): CampaignListRes
     const imgMatch = safeMatch(section, /<img\s+src="([^"]+)"/);
     const imageUrl = imgMatch ? imgMatch[1] : null;
 
+    // Store raw markdown section
+    const rawMarkdown = `## ${title}\n\n${section}`;
+
     campaigns.push({
       id: `campaign-${index}`,
       title,
@@ -219,6 +222,7 @@ const parseCampaignsMarkdown = (markdown: string, date: string): CampaignListRes
       startDate: date || new Date().toISOString().split("T")[0],
       endDate: date || new Date().toISOString().split("T")[0],
       isSubscribed: false,
+      rawMarkdown,
     });
   });
 

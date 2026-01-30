@@ -119,6 +119,9 @@ public struct MarkdownParser {
 
             let id = title.prefix(20).replacingOccurrences(of: " ", with: "-").lowercased()
 
+            // Store raw markdown section
+            let rawMarkdown = "## \(title)\n\n-   **活动标题**：\(item)"
+
             campaigns.append(Campaign(
                 id: id,
                 title: title,
@@ -126,7 +129,8 @@ public struct MarkdownParser {
                 imageUrl: imageUrl,
                 startDate: date,
                 endDate: date,
-                isSubscribed: false
+                isSubscribed: false,
+                rawMarkdown: rawMarkdown
             ))
         }
 
