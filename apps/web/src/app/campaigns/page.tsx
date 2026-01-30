@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 
+import { CampaignDetailModal } from "@/components/CampaignDetailModal";
 import { CampaignList } from "@/components/CampaignList";
 import { StatusBanner } from "@/components/StatusBanner";
 import { useCampaigns } from "@/hooks/useCampaigns";
+import type { Campaign } from "@/lib/types";
 
 export default function CampaignsPage() {
   const [date, setDate] = useState<string | undefined>(undefined);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const { data, isLoading, error } = useCampaigns({ date });
 
   return (
@@ -48,8 +51,14 @@ export default function CampaignsPage() {
       {isLoading ? (
         <p className="text-sm text-slate-500">Loading campaigns…</p>
       ) : (
-        <CampaignList campaigns={data?.campaigns ?? []} />
+        <CampaignList campaigns={data?.campaigns ?? []} onCampaignClick={setSelectedCampaign} />
       )}
+
+      <CampaignDetailModal
+        campaign={selectedCampaign}
+        isOpen={selectedCampaign !== null}
+        onClose={() => setSelectedCampaign(null)}
+      />
     </div>
   );
 }

@@ -8,8 +8,9 @@ public struct Campaign: Identifiable, Codable, Hashable {
     public let startDate: String
     public let endDate: String
     public let isSubscribed: Bool
+    public let rawMarkdown: String?
 
-    public init(id: String, title: String, description: String, imageUrl: String?, startDate: String, endDate: String, isSubscribed: Bool) {
+    public init(id: String, title: String, description: String, imageUrl: String?, startDate: String, endDate: String, isSubscribed: Bool, rawMarkdown: String? = nil) {
         self.id = id
         self.title = title
         self.description = description
@@ -17,6 +18,7 @@ public struct Campaign: Identifiable, Codable, Hashable {
         self.startDate = startDate
         self.endDate = endDate
         self.isSubscribed = isSubscribed
+        self.rawMarkdown = rawMarkdown
     }
 
     public var startDateParsed: Date? {

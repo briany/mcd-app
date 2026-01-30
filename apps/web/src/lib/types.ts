@@ -23,6 +23,7 @@ export interface Campaign {
   startDate: string; // yyyy-MM-dd
   endDate: string; // yyyy-MM-dd
   isSubscribed: boolean;
+  rawMarkdown?: string; // Full markdown content for detail view
 }
 
 export type CampaignStatus = "ongoing" | "past" | "upcoming" | "unknown";
