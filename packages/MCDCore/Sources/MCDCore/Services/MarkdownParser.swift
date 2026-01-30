@@ -31,12 +31,16 @@ public struct MarkdownParser {
             // Generate a simple ID from the name
             let id = name.replacingOccurrences(of: " ", with: "-").lowercased()
 
+            // Store full section as rawMarkdown (prepend ## header for proper rendering)
+            let rawMarkdown = "## \(section)"
+
             coupons.append(Coupon(
                 id: id,
                 name: name,
                 imageUrl: imageUrl,
                 expiryDate: expiryDate,
-                status: status
+                status: status,
+                rawMarkdown: rawMarkdown
             ))
         }
 
@@ -49,7 +53,7 @@ public struct MarkdownParser {
         // Split by list items (- 优惠券标题：)
         let items = markdown.components(separatedBy: "- 优惠券标题：").dropFirst()
 
-        for item in items {
+        for (index, item) in items.enumerated() {
             let lines = item.split(separator: "\\", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
             guard let name = lines.first?.trimmingCharacters(in: .whitespaces) else { continue }
@@ -71,12 +75,16 @@ public struct MarkdownParser {
 
             let id = name.replacingOccurrences(of: " ", with: "-").lowercased()
 
+            // Store raw markdown section
+            let rawMarkdown = "## \(name)\n\n- 优惠券标题：\(item)"
+
             coupons.append(Coupon(
-                id: id,
+                id: "\(id)-\(index)",
                 name: name,
                 imageUrl: imageUrl,
                 expiryDate: "2099-12-31", // No expiry info in available coupons
-                status: status
+                status: status,
+                rawMarkdown: rawMarkdown
             ))
         }
 

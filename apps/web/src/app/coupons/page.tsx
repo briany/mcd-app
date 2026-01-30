@@ -3,9 +3,11 @@
 import { useMemo, useState } from "react";
 
 import { CouponCard } from "@/components/CouponCard";
+import { CouponDetailModal } from "@/components/CouponDetailModal";
 import { StatusBanner } from "@/components/StatusBanner";
 import { useCoupons } from "@/hooks/useCoupons";
 import { matchesFilter } from "@/lib/filters";
+import type { Coupon } from "@/lib/types";
 
 const statusOptions = [
   { value: "all", label: "All" },
@@ -17,6 +19,7 @@ export default function CouponsPage() {
   const { data, isLoading, error, claimCoupon, isClaiming } = useCoupons();
   const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
   const filteredCoupons = useMemo(() => {
     if (!data?.coupons) return [];
@@ -75,6 +78,7 @@ export default function CouponsPage() {
                 coupon={coupon}
                 ctaLabel="Mark as used"
                 onCtaClick={(selected) => claimCoupon(selected.id)}
+                onCardClick={(selected) => setSelectedCoupon(selected)}
                 disabled={isClaiming}
               />
             ))
@@ -85,6 +89,12 @@ export default function CouponsPage() {
           )}
         </div>
       )}
+
+      <CouponDetailModal
+        coupon={selectedCoupon}
+        isOpen={selectedCoupon !== null}
+        onClose={() => setSelectedCoupon(null)}
+      />
     </div>
   );
 }

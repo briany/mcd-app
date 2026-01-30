@@ -3,6 +3,7 @@ import MCDCore
 
 public struct MyCouponsView: View {
     @StateObject private var viewModel = CouponViewModel()
+    @State private var selectedCoupon: Coupon?
 
     public init() {}
 
@@ -35,6 +36,10 @@ public struct MyCouponsView: View {
                         VStack(spacing: 12) {
                             ForEach(viewModel.myCoupons) { coupon in
                                 CouponCardView(coupon: coupon)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        selectedCoupon = coupon
+                                    }
                             }
                         }
                         .padding()
@@ -65,6 +70,9 @@ public struct MyCouponsView: View {
             }
             .task {
                 await viewModel.fetchMyCoupons()
+            }
+            .sheet(item: $selectedCoupon) { coupon in
+                CouponDetailView(coupon: coupon)
             }
         }
     }

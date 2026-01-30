@@ -6,13 +6,15 @@ public struct Coupon: Identifiable, Codable, Hashable {
     public let imageUrl: String?
     public let expiryDate: String
     public let status: String
+    public let rawMarkdown: String?
 
-    public init(id: String, name: String, imageUrl: String?, expiryDate: String, status: String) {
+    public init(id: String, name: String, imageUrl: String?, expiryDate: String, status: String, rawMarkdown: String? = nil) {
         self.id = id
         self.name = name
         self.imageUrl = imageUrl
         self.expiryDate = expiryDate
         self.status = status
+        self.rawMarkdown = rawMarkdown
     }
 
     public var expiryDateParsed: Date? {

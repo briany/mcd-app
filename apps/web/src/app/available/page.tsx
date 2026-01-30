@@ -3,13 +3,16 @@
 import { useMemo, useState } from "react";
 
 import { AvailableCouponGrid } from "@/components/AvailableCouponGrid";
+import { CouponDetailModal } from "@/components/CouponDetailModal";
 import { StatusBanner } from "@/components/StatusBanner";
 import { useAvailableCoupons } from "@/hooks/useAvailableCoupons";
+import type { Coupon } from "@/lib/types";
 
 export default function AvailableCouponsPage() {
   const { data, isLoading, error, autoClaim, isAutoClaiming, claimCoupon, isClaiming } =
     useAvailableCoupons();
   const [query, setQuery] = useState("");
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
   const filteredCoupons = useMemo(() => {
     if (!data?.coupons) return [];
@@ -58,9 +61,16 @@ export default function AvailableCouponsPage() {
         <AvailableCouponGrid
           coupons={filteredCoupons}
           onClaim={(coupon) => claimCoupon(coupon.id)}
+          onCouponClick={(coupon) => setSelectedCoupon(coupon)}
           isClaiming={isClaiming || isAutoClaiming}
         />
       )}
+
+      <CouponDetailModal
+        coupon={selectedCoupon}
+        isOpen={selectedCoupon !== null}
+        onClose={() => setSelectedCoupon(null)}
+      />
     </div>
   );
 }

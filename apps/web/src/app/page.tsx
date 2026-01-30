@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 import { AvailableCouponGrid } from "@/components/AvailableCouponGrid";
 import { CampaignList } from "@/components/CampaignList";
 import { CouponCard } from "@/components/CouponCard";
+import { CouponDetailModal } from "@/components/CouponDetailModal";
 import { StatusBanner } from "@/components/StatusBanner";
 import { useAvailableCoupons } from "@/hooks/useAvailableCoupons";
 import { useCampaigns } from "@/hooks/useCampaigns";
 import { useCoupons } from "@/hooks/useCoupons";
+import type { Coupon } from "@/lib/types";
 
 const formatCount = (count: number, loading: boolean) =>
   loading ? "…" : new Intl.NumberFormat().format(count);
@@ -33,6 +36,8 @@ export default function DashboardPage() {
     isLoading: campaignsLoading,
     error: campaignsError,
   } = useCampaigns();
+
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
   const summaryCards = [
     {
@@ -112,6 +117,7 @@ export default function DashboardPage() {
                   coupon={coupon}
                   ctaLabel="Mark as used"
                   onCtaClick={(selected) => claimCoupon(selected.id)}
+                  onCardClick={(selected) => setSelectedCoupon(selected)}
                   disabled={isClaiming}
                 />
               )) || (
@@ -144,6 +150,7 @@ export default function DashboardPage() {
             <AvailableCouponGrid
               coupons={availableCoupons?.coupons.slice(0, 4) ?? []}
               onClaim={(coupon) => claimCoupon(coupon.id)}
+              onCouponClick={(coupon) => setSelectedCoupon(coupon)}
               isClaiming={isClaiming || isAutoClaiming}
             />
           )}
@@ -163,6 +170,12 @@ export default function DashboardPage() {
           <CampaignList campaigns={campaigns?.campaigns.slice(0, 2) ?? []} />
         )}
       </section>
+
+      <CouponDetailModal
+        coupon={selectedCoupon}
+        isOpen={selectedCoupon !== null}
+        onClose={() => setSelectedCoupon(null)}
+      />
     </div>
   );
 }

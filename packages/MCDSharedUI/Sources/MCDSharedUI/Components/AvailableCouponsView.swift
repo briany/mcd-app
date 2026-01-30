@@ -4,6 +4,7 @@ import MCDCore
 public struct AvailableCouponsView: View {
     @StateObject private var viewModel = CouponViewModel()
     @State private var showingClaimSuccess = false
+    @State private var selectedCoupon: Coupon?
 
     private let gridColumns = [
         GridItem(.adaptive(minimum: 300), spacing: 16)
@@ -41,6 +42,10 @@ public struct AvailableCouponsView: View {
                             ForEach(viewModel.availableCoupons) { coupon in
                                 VStack(spacing: 12) {
                                     CouponCardView(coupon: coupon)
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            selectedCoupon = coupon
+                                        }
 
                                     // Individual Claim Button (placeholder)
                                     Button("Claim") {
@@ -86,6 +91,9 @@ public struct AvailableCouponsView: View {
             }
             .task {
                 await viewModel.fetchAvailableCoupons()
+            }
+            .sheet(item: $selectedCoupon) { coupon in
+                CouponDetailView(coupon: coupon)
             }
         }
     }

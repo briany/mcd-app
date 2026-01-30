@@ -4,10 +4,16 @@ import { CouponCard } from "@/components/CouponCard";
 interface AvailableCouponGridProps {
   coupons: Coupon[];
   onClaim?: (coupon: Coupon) => void;
+  onCouponClick?: (coupon: Coupon) => void;
   isClaiming?: boolean;
 }
 
-export const AvailableCouponGrid = ({ coupons, onClaim, isClaiming }: AvailableCouponGridProps) => {
+export const AvailableCouponGrid = ({
+  coupons,
+  onClaim,
+  onCouponClick,
+  isClaiming,
+}: AvailableCouponGridProps) => {
   if (!coupons.length) {
     return (
       <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
@@ -24,6 +30,7 @@ export const AvailableCouponGrid = ({ coupons, onClaim, isClaiming }: AvailableC
           coupon={coupon}
           ctaLabel={onClaim ? "Claim" : undefined}
           onCtaClick={onClaim}
+          onCardClick={onCouponClick}
           disabled={isClaiming}
         />
       ))}
