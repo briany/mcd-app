@@ -68,7 +68,7 @@ public struct CouponDetailView: View {
 
                     // Markdown Content
                     if let rawMarkdown = coupon.rawMarkdown {
-                        MarkdownContentView(markdown: rawMarkdown)
+                        SharedMarkdownContentView(markdown: rawMarkdown)
                     } else {
                         Text("No additional details available.")
                             .foregroundColor(.secondary)
@@ -114,138 +114,6 @@ public struct CouponDetailView: View {
             return .secondary
         }
     }
-}
-
-/// A view that renders markdown content with images
-struct MarkdownContentView: View {
-    let markdown: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            ForEach(parseMarkdown(), id: \.self) { element in
-                renderElement(element)
-            }
-        }
-    }
-
-    private func parseMarkdown() -> [MarkdownElement] {
-        var elements: [MarkdownElement] = []
-        let lines = markdown.components(separatedBy: "\n")
-
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-
-            // Skip empty lines
-            if trimmed.isEmpty {
-                continue
-            }
-
-            // Check for image tag
-            if let imageUrl = extractImageUrl(from: trimmed) {
-                elements.append(.image(url: imageUrl))
-                continue
-            }
-
-            // Check for heading
-            if trimmed.hasPrefix("## ") {
-                let text = String(trimmed.dropFirst(3))
-                elements.append(.heading(text: text))
-                continue
-            }
-
-            // Check for list item
-            if trimmed.hasPrefix("- ") {
-                let text = String(trimmed.dropFirst(2))
-                elements.append(.listItem(text: parseInlineFormatting(text)))
-                continue
-            }
-
-            // Regular paragraph
-            elements.append(.paragraph(text: parseInlineFormatting(trimmed)))
-        }
-
-        return elements
-    }
-
-    private func extractImageUrl(from line: String) -> String? {
-        guard line.contains("<img") && line.contains("src=") else { return nil }
-
-        // Extract URL from <img src="..." pattern
-        guard let srcRange = line.range(of: #"src="([^"]+)""#, options: .regularExpression) else {
-            return nil
-        }
-
-        let match = String(line[srcRange])
-        let url = match.replacingOccurrences(of: #"src=""#, with: "").replacingOccurrences(of: #"""#, with: "")
-        return url
-    }
-
-    private func parseInlineFormatting(_ text: String) -> AttributedString {
-        var result = text
-
-        // Remove ** markers for bold (we'll handle styling in the view)
-        result = result.replacingOccurrences(of: "**", with: "")
-
-        // Convert to AttributedString
-        do {
-            return try AttributedString(markdown: result)
-        } catch {
-            return AttributedString(result)
-        }
-    }
-
-    @ViewBuilder
-    private func renderElement(_ element: MarkdownElement) -> some View {
-        switch element {
-        case .heading(let text):
-            Text(text)
-                .font(.headline)
-                .fontWeight(.semibold)
-                .padding(.top, 8)
-
-        case .paragraph(let text):
-            Text(text)
-                .font(.body)
-
-        case .listItem(let text):
-            HStack(alignment: .top, spacing: 8) {
-                Text("\u{2022}")
-                    .font(.body)
-                Text(text)
-                    .font(.body)
-            }
-
-        case .image(let url):
-            if let imageUrl = URL(string: url) {
-                AsyncImage(url: imageUrl) { phase in
-                    switch phase {
-                    case .empty:
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 150)
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: .infinity)
-                            .frame(maxHeight: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    case .failure:
-                        EmptyView()
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
-            }
-        }
-    }
-}
-
-enum MarkdownElement: Hashable {
-    case heading(text: String)
-    case paragraph(text: AttributedString)
-    case listItem(text: AttributedString)
-    case image(url: String)
 }
 
 #Preview {

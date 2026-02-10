@@ -84,4 +84,31 @@ describe("config", () => {
       // since getMcpToken() is server-only
     });
   });
+
+  describe("allowedOrigins", () => {
+    it("defaults to localhost origins when ALLOWED_ORIGINS is not set", async () => {
+      delete process.env.ALLOWED_ORIGINS;
+      vi.resetModules();
+
+      const { allowedOrigins } = await import("@/lib/config");
+
+      expect(allowedOrigins).toEqual([
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+      ]);
+    });
+
+    it("parses ALLOWED_ORIGINS from environment", async () => {
+      process.env.ALLOWED_ORIGINS =
+        "https://app.example.com, https://admin.example.com";
+      vi.resetModules();
+
+      const { allowedOrigins } = await import("@/lib/config");
+
+      expect(allowedOrigins).toEqual([
+        "https://app.example.com",
+        "https://admin.example.com",
+      ]);
+    });
+  });
 });

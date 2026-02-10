@@ -66,8 +66,8 @@ public struct AvailableCouponsView: View {
                 ToolbarItem(placement: .primaryAction) {
                     Button("Claim All") {
                         Task {
-                            await viewModel.autoClaimAll()
-                            showingClaimSuccess = true
+                            let claimSucceeded = await viewModel.autoClaimAll()
+                            showingClaimSuccess = claimSucceeded
                         }
                     }
                     .disabled(viewModel.isLoading || viewModel.availableCoupons.isEmpty)
@@ -80,7 +80,14 @@ public struct AvailableCouponsView: View {
             } message: {
                 Text("All available coupons have been claimed!")
             }
-            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            .alert("Error", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { newValue in
+                    if !newValue {
+                        viewModel.errorMessage = nil
+                    }
+                }
+            )) {
                 Button("OK") {
                     viewModel.errorMessage = nil
                 }

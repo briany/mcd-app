@@ -69,7 +69,7 @@ describe("Caching Configuration - Source Verification", () => {
 
     it("should have staleTime of 5 minutes (300000ms) matching API revalidate", () => {
       // staleTime: 1000 * 60 * 5 = 300000ms = 5 minutes
-      // This matches the API route's revalidate = 300 (seconds)
+      // This matches server freshness expectations while API routes stay force-dynamic.
       expect(hookSource).toContain("staleTime: 1000 * 60 * 5");
     });
 
@@ -98,8 +98,8 @@ describe("API Route Caching - Source Verification", () => {
       "utf-8"
     );
 
-    it("should have revalidate of 300 seconds (5 minutes)", () => {
-      expect(routeSource).toContain("revalidate = 300");
+    it("should be force-dynamic to prevent cross-user cache sharing", () => {
+      expect(routeSource).toContain('dynamic = "force-dynamic"');
     });
   });
 });

@@ -28,6 +28,27 @@ export function withBodySizeLimit(
       }
     }
 
+    // Enforce body size even when content-length is missing or inaccurate.
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
+      try {
+        const bodyBuffer = await request.clone().arrayBuffer();
+        if (bodyBuffer.byteLength > maxSize) {
+          return NextResponse.json(
+            {
+              message: `Request body too large. Maximum size is ${Math.round(
+                maxSize / 1024
+              )}KB.`,
+              maxSize,
+              receivedSize: bodyBuffer.byteLength,
+            },
+            { status: 413 }
+          );
+        }
+      } catch {
+        // If body cannot be read here, continue and let the handler surface parsing errors.
+      }
+    }
+
     return handler(request);
   };
 }

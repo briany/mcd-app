@@ -4,10 +4,28 @@ import { getToken } from "next-auth/jwt";
 
 import { allowedOrigins } from "@/lib/config";
 
+function appendVaryHeader(response: NextResponse, value: string) {
+  const current = response.headers.get("Vary");
+  if (!current) {
+    response.headers.set("Vary", value);
+    return;
+  }
+
+  const parts = current
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (!parts.includes(value)) {
+    response.headers.set("Vary", [...parts, value].join(", "));
+  }
+}
+
 function setCorsHeaders(response: NextResponse, origin: string | null) {
   if (origin && allowedOrigins.includes(origin)) {
     response.headers.set("Access-Control-Allow-Origin", origin);
     response.headers.set("Access-Control-Allow-Credentials", "true");
+    appendVaryHeader(response, "Origin");
   }
 }
 
@@ -103,7 +121,8 @@ export async function middleware(req: NextRequest) {
 
   // Skip auth in E2E test mode (controlled by environment variable)
   const isE2ETest = process.env.E2E_TEST_MODE === "true";
-  if (isE2ETest) {
+  const isProduction = process.env.NODE_ENV === "production";
+  if (isE2ETest && !isProduction) {
     return response;
   }
 

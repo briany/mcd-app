@@ -17,19 +17,41 @@ public struct Coupon: Identifiable, Codable, Hashable {
         self.rawMarkdown = rawMarkdown
     }
 
-    public var expiryDateParsed: Date? {
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.date(from: expiryDate)
+        return formatter
+    }()
+
+    private static let utcCalendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        return calendar
+    }()
+
+    public var expiryDateParsed: Date? {
+        Coupon.dateFormatter.date(from: expiryDate)
     }
 
     public var daysUntilExpiry: Int? {
+        daysUntilExpiry(referenceDate: Date())
+    }
+
+    public func daysUntilExpiry(referenceDate: Date) -> Int? {
         guard let expiry = expiryDateParsed else { return nil }
-        return Calendar.current.dateComponents([.day], from: Date(), to: expiry).day
+        let startOfReferenceDay = Coupon.utcCalendar.startOfDay(for: referenceDate)
+        let startOfExpiryDay = Coupon.utcCalendar.startOfDay(for: expiry)
+        return Coupon.utcCalendar.dateComponents([.day], from: startOfReferenceDay, to: startOfExpiryDay).day
     }
 
     public var expiryWarningLevel: ExpiryWarning {
-        guard let days = daysUntilExpiry else { return .none }
+        expiryWarningLevel(referenceDate: Date())
+    }
+
+    public func expiryWarningLevel(referenceDate: Date) -> ExpiryWarning {
+        guard let days = daysUntilExpiry(referenceDate: referenceDate) else { return .none }
         if days < 0 { return .expired }
         if days < 3 { return .critical }
         if days < 7 { return .warning }

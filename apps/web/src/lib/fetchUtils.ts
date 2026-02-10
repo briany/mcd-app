@@ -8,9 +8,12 @@ export async function handleFetchError(
 ): Promise<never> {
   if (response.status === 429) {
     const retryAfter = response.headers.get("Retry-After");
-    throw new Error(
-      `Too many requests. Please try again in ${retryAfter} seconds.`
-    );
+    if (retryAfter) {
+      throw new Error(
+        `Too many requests. Please try again in ${retryAfter} seconds.`
+      );
+    }
+    throw new Error("Too many requests. Please try again later.");
   }
 
   const message = await response.text();

@@ -53,8 +53,9 @@ describe("corsHelpers", () => {
       const response = handleCorsPreFlight(request);
 
       expect(response.headers.get("Access-Control-Allow-Methods")).toBe("GET, POST, OPTIONS");
-      expect(response.headers.get("Access-Control-Allow-Headers")).toBe("Content-Type, Authorization");
+      expect(response.headers.get("Access-Control-Allow-Headers")).toContain("X-CSRF-Token");
       expect(response.headers.get("Access-Control-Max-Age")).toBe("86400");
+      expect(response.headers.get("Vary")).toContain("Origin");
     });
   });
 });

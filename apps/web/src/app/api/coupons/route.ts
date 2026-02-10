@@ -6,8 +6,8 @@ import { requireAuth } from "@/lib/authHelpers";
 import { withRateLimit } from "@/lib/withRateLimit";
 import { handleCorsPreFlight } from "@/lib/corsHelpers";
 
-// Cache coupons for 1 minute (60 seconds)
-export const revalidate = 60;
+// Authenticated data should not be statically cached.
+export const dynamic = "force-dynamic";
 
 export const GET = withRateLimit(async () => {
   try {

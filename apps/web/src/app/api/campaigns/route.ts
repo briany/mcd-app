@@ -5,9 +5,10 @@ import { handleApiError } from "@/lib/api";
 import { requireAuth } from "@/lib/authHelpers";
 import { withRateLimit } from "@/lib/withRateLimit";
 import { validateQuery, campaignQuerySchema } from "@/lib/validation";
+import { handleCorsPreFlight } from "@/lib/corsHelpers";
 
-// Cache campaigns for 5 minutes (300 seconds)
-export const revalidate = 300;
+// Authenticated data should not be statically cached.
+export const dynamic = "force-dynamic";
 
 export const GET = withRateLimit(async (request: NextRequest) => {
   try {
@@ -25,3 +26,7 @@ export const GET = withRateLimit(async (request: NextRequest) => {
     return handleApiError(error);
   }
 }, "api");
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreFlight(request);
+}

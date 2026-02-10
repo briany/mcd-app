@@ -21,6 +21,10 @@ vi.mock("@/lib/withCsrf", () => ({
   withCsrf: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
 }));
 
+vi.mock("@/lib/withBodySizeLimit", () => ({
+  withBodySizeLimit: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
+}));
+
 vi.mock("@/lib/ratelimit", () => ({
   rateLimiters: {
     write: {

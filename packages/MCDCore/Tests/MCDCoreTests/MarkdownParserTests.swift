@@ -81,6 +81,22 @@ final class MarkdownParserTests: XCTestCase {
         XCTAssertEqual(coupons[0].status, "claimed")
     }
 
+    func testParseAvailableCouponsNormalizesEscapedLineBreaksInRawMarkdown() {
+        let input = """
+        # Available Coupons
+        - 优惠券标题：McChicken Sandwich\\
+        <img src="https://example.com/chicken.jpg"/>\\
+        状态：未领取
+        """
+
+        let coupons = MarkdownParser.parseAvailableCoupons(input)
+        let rawMarkdown = coupons.first?.rawMarkdown
+
+        XCTAssertNotNil(rawMarkdown)
+        XCTAssertFalse(rawMarkdown?.contains("\\") ?? true)
+        XCTAssertTrue(rawMarkdown?.contains("\n状态：未领取") ?? false)
+    }
+
     // MARK: - Campaign Parsing
 
     func testParseCampaignsEmpty() {
@@ -119,5 +135,21 @@ final class MarkdownParserTests: XCTestCase {
         XCTAssertEqual(campaigns.count, 2)
         XCTAssertEqual(campaigns[0].title, "Summer Sale")
         XCTAssertEqual(campaigns[1].title, "Winter Specials")
+    }
+
+    func testParseCampaignsNormalizesEscapedLineBreaksInRawMarkdown() {
+        let input = """
+        # Campaigns
+        -   **活动标题**：Spring Festival 2026\\
+        **活动内容介绍**：Special discounts for Spring Festival\\
+        <img src="https://example.com/spring.jpg"/>
+        """
+
+        let campaigns = MarkdownParser.parseCampaigns(input, for: "2026-03-01")
+        let rawMarkdown = campaigns.first?.rawMarkdown
+
+        XCTAssertNotNil(rawMarkdown)
+        XCTAssertFalse(rawMarkdown?.contains("\\") ?? true)
+        XCTAssertTrue(rawMarkdown?.contains("\n**活动内容介绍**：Special discounts for Spring Festival") ?? false)
     }
 }

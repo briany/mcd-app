@@ -37,6 +37,10 @@ final class CouponCardViewTests: XCTestCase {
     }
 
     func testExpiryWarningLevels() {
+        let referenceDate = Calendar(identifier: .gregorian).date(
+            from: DateComponents(year: 2026, month: 1, day: 19, hour: 12)
+        )!
+
         // Test critical expiry (< 3 days)
         let criticalCoupon = Coupon(
             id: "critical",
@@ -46,7 +50,7 @@ final class CouponCardViewTests: XCTestCase {
             status: "Active"
         )
 
-        XCTAssertTrue(criticalCoupon.daysUntilExpiry ?? 100 < 3)
+        XCTAssertEqual(criticalCoupon.daysUntilExpiry(referenceDate: referenceDate), 1)
 
         // Test far future expiry
         let safeCoupon = Coupon(
@@ -57,6 +61,6 @@ final class CouponCardViewTests: XCTestCase {
             status: "Active"
         )
 
-        XCTAssertTrue(safeCoupon.daysUntilExpiry ?? 0 > 3)
+        XCTAssertTrue((safeCoupon.daysUntilExpiry(referenceDate: referenceDate) ?? 0) > 3)
     }
 }

@@ -34,4 +34,55 @@ final class ModelTests: XCTestCase {
         XCTAssertEqual(campaign.title, "Spring Festival Deal")
         XCTAssertTrue(campaign.isSubscribed)
     }
+
+    func testCouponDaysUntilExpirySupportsReferenceDate() {
+        let coupon = Coupon(
+            id: "123",
+            name: "Big Mac Combo",
+            imageUrl: nil,
+            expiryDate: "2026-02-20",
+            status: "available"
+        )
+
+        let referenceDate = Calendar(identifier: .gregorian).date(
+            from: DateComponents(year: 2026, month: 2, day: 19, hour: 12)
+        )!
+
+        XCTAssertEqual(coupon.daysUntilExpiry(referenceDate: referenceDate), 1)
+    }
+
+    func testCampaignStatusTreatsEndDateAsInclusive() {
+        let campaign = Campaign(
+            id: "campaign-1",
+            title: "Spring Festival Deal",
+            description: "Special promotion",
+            imageUrl: nil,
+            startDate: "2026-02-01",
+            endDate: "2026-02-10",
+            isSubscribed: false
+        )
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        let endDateNoon = calendar.date(
+            from: DateComponents(year: 2026, month: 2, day: 10, hour: 12)
+        )!
+        let nextDay = calendar.date(
+            from: DateComponents(year: 2026, month: 2, day: 11, hour: 0)
+        )!
+
+        switch campaign.status(referenceDate: endDateNoon) {
+        case .ongoing:
+            break
+        default:
+            XCTFail("Campaign should still be ongoing for its end date")
+        }
+
+        switch campaign.status(referenceDate: nextDay) {
+        case .past:
+            break
+        default:
+            XCTFail("Campaign should be past after end date")
+        }
+    }
 }

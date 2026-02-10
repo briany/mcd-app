@@ -59,7 +59,14 @@ public struct MyCouponsView: View {
                     .disabled(viewModel.isLoading)
                 }
             }
-            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            .alert("Error", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { newValue in
+                    if !newValue {
+                        viewModel.errorMessage = nil
+                    }
+                }
+            )) {
                 Button("OK") {
                     viewModel.errorMessage = nil
                 }

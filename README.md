@@ -91,7 +91,7 @@ The web application has undergone a comprehensive 4-phase security overhaul:
 
 ### Test Coverage Improvements
 
-- **Web App**: Expanded test coverage from 12% to 70%+ with 72 passing unit tests
+- **Web App**: Expanded test coverage from 12% to 70%+ with a large Vitest suite (300+ tests)
 - Added comprehensive API route tests, component tests, and hook tests
 - Implemented E2E tests using Playwright with security header verification
 - Added multi-layered lint error prevention system
@@ -99,7 +99,7 @@ The web application has undergone a comprehensive 4-phase security overhaul:
 ### CI/CD Enhancements
 
 - Added Claude Code GitHub workflow for automated assistance
-- Updated iOS simulator target to iPhone 16 Pro for builds
+- Updated iOS CI builds to use a generic simulator destination for reliability
 - Added NEXTAUTH_SECRET environment variable for web builds and E2E tests
 - Fixed E2E test stability by separating auth from security headers
 
@@ -130,7 +130,7 @@ swift test --package-path packages/MCDSharedUI
 ```
 
 ### Web App
-- **72 passing unit tests** using Vitest
+- **300+ unit tests** using Vitest
 - **E2E tests** using Playwright
 - **Component tests** using Testing Library
 
@@ -144,7 +144,7 @@ npm run test:e2e      # E2E tests
 
 GitHub Actions workflow runs on every push:
 - Tests all Swift packages (MCDCore, MCDSharedUI)
-- Builds iOS app (iPhone 17 Pro simulator)
+- Builds iOS app (generic iOS Simulator)
 - Builds macOS app
 - Tests and builds web app (lint, unit tests, E2E, production build)
 

@@ -246,7 +246,7 @@ curl -X POST http://localhost:3000/api/available-coupons/auto-claim \
 
 ### Unit Tests (Vitest)
 
-Currently **72 passing tests** covering:
+Currently **300+ passing tests** covering:
 - API route handlers
 - MCP client functionality
 - React hooks

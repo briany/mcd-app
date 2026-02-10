@@ -1,4 +1,8 @@
 const isServer = typeof window === "undefined";
+const defaultAllowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
 
 const optionalEnv = (key: string): string | undefined => {
   const value = process.env[key];
@@ -29,7 +33,9 @@ export const getMcpToken = (): string => requiredEnv("MCD_MCP_TOKEN");
  * These endpoint helpers are deprecated but kept for reference.
  */
 export const mcpConfig = {
-  baseUrl: getMcpBaseUrl(),
+  get baseUrl() {
+    return getMcpBaseUrl();
+  },
   authHeaders: () => ({
     Authorization: `Bearer ${getMcpToken()}`,
   }),
@@ -38,8 +44,18 @@ export const mcpConfig = {
 /**
  * Allowed CORS origins for API requests
  */
-export const allowedOrigins = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "https://mcd-app.example.com", // Replace with actual production domain
-];
+const parseAllowedOrigins = (): string[] => {
+  const configuredOrigins = optionalEnv("ALLOWED_ORIGINS");
+  if (!configuredOrigins) {
+    return defaultAllowedOrigins;
+  }
+
+  const parsed = configuredOrigins
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return parsed.length > 0 ? parsed : defaultAllowedOrigins;
+};
+
+export const allowedOrigins = parseAllowedOrigins();

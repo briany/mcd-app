@@ -21,25 +21,44 @@ public struct Campaign: Identifiable, Codable, Hashable {
         self.rawMarkdown = rawMarkdown
     }
 
-    public var startDateParsed: Date? {
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.date(from: startDate)
+        return formatter
+    }()
+
+    private static let utcCalendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        return calendar
+    }()
+
+    public var startDateParsed: Date? {
+        Campaign.dateFormatter.date(from: startDate)
     }
 
     public var endDateParsed: Date? {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.date(from: endDate)
+        Campaign.dateFormatter.date(from: endDate)
     }
 
     public var status: CampaignStatus {
-        let now = Date()
+        status(referenceDate: Date())
+    }
+
+    public func status(referenceDate: Date) -> CampaignStatus {
         guard let start = startDateParsed, let end = endDateParsed else {
             return .unknown
         }
-        if now < start { return .upcoming }
-        if now > end { return .past }
+
+        let referenceDay = Campaign.utcCalendar.startOfDay(for: referenceDate)
+        let startDay = Campaign.utcCalendar.startOfDay(for: start)
+        let endDay = Campaign.utcCalendar.startOfDay(for: end)
+
+        if referenceDay < startDay { return .upcoming }
+        if referenceDay > endDay { return .past }
+
         return .ongoing
     }
 

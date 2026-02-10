@@ -50,17 +50,17 @@ import * as autoClaimRoute from "@/app/api/available-coupons/auto-claim/route";
 import * as claimRoute from "@/app/api/coupons/claim/route";
 
 describe("API Route Caching Configuration", () => {
-  describe("GET routes (should be cached)", () => {
-    it("campaigns route should cache for 5 minutes", () => {
-      expect(campaignsRoute.revalidate).toBe(300);
+  describe("GET routes (should be dynamic to avoid cross-user cache leakage)", () => {
+    it("campaigns route should be force-dynamic", () => {
+      expect(campaignsRoute.dynamic).toBe("force-dynamic");
     });
 
-    it("coupons route should cache for 1 minute", () => {
-      expect(couponsRoute.revalidate).toBe(60);
+    it("coupons route should be force-dynamic", () => {
+      expect(couponsRoute.dynamic).toBe("force-dynamic");
     });
 
-    it("available-coupons route should cache for 1 minute", () => {
-      expect(availableCouponsRoute.revalidate).toBe(60);
+    it("available-coupons route should be force-dynamic", () => {
+      expect(availableCouponsRoute.dynamic).toBe("force-dynamic");
     });
   });
 

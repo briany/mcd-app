@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
@@ -6,6 +6,7 @@ import { requireAuth } from "@/lib/authHelpers";
 import { withCsrf } from "@/lib/withCsrf";
 import { withRateLimit } from "@/lib/withRateLimit";
 import { withBodySizeLimit } from "@/lib/withBodySizeLimit";
+import { handleCorsPreFlight } from "@/lib/corsHelpers";
 
 export const POST = withRateLimit(
   withCsrf(
@@ -27,3 +28,7 @@ export const POST = withRateLimit(
   ),
   "autoClaim"
 );
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreFlight(request);
+}

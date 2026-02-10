@@ -46,21 +46,31 @@ public class CouponViewModel: ObservableObject {
         isLoading = false
     }
 
-    public func autoClaimAll() async {
+    @discardableResult
+    public func autoClaimAll() async -> Bool {
         isLoading = true
         errorMessage = nil
 
         do {
-            _ = try await client.autoClaimCoupons()
+            let response = try await client.autoClaimCoupons()
+            guard response.success else {
+                errorMessage = response.message
+                isLoading = false
+                return false
+            }
+
             // After claiming, refresh both lists
             await fetchMyCoupons()
             await fetchAvailableCoupons()
+            return true
         } catch let error as MCPError {
             errorMessage = error.errorDescription
             isLoading = false
+            return false
         } catch {
             errorMessage = "An unexpected error occurred: \(error.localizedDescription)"
             isLoading = false
+            return false
         }
     }
 

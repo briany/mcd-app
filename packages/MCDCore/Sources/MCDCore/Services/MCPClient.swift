@@ -127,6 +127,22 @@ public actor MCPClient {
 
     private init() {}
 
+    private func makeCacheKey(tool: String, arguments: [String: Any]) -> String {
+        guard !arguments.isEmpty else { return tool }
+
+        if let encoded = try? JSONSerialization.data(withJSONObject: arguments, options: [.sortedKeys]),
+           let json = String(data: encoded, encoding: .utf8) {
+            return "\(tool)-\(json)"
+        }
+
+        // Fallback to a deterministic ordering if JSON serialization fails.
+        let normalized = arguments
+            .map { key, value in "\(key)=\(String(describing: value))" }
+            .sorted()
+            .joined(separator: "&")
+        return "\(tool)-\(normalized)"
+    }
+
     /// Get the MCP token, throwing an error if not configured
     private func getToken() throws -> String {
         guard let token = MCDConfiguration.mcpToken else {
@@ -141,7 +157,7 @@ public actor MCPClient {
         tool: String,
         arguments: [String: Any] = [:]
     ) async throws -> String {
-        let cacheKey = "\(tool)-\(arguments.description)"
+        let cacheKey = makeCacheKey(tool: tool, arguments: arguments)
 
         // Check cache
         if let cached = cache[cacheKey],
@@ -187,12 +203,29 @@ public actor MCPClient {
             throw MCPError.serverError("HTTP \(httpResponse.statusCode)")
         }
 
-        // Decode MCP API response to extract markdown from content
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let result = json["result"] as? [String: Any],
-              let content = result["content"] as? [[String: Any]],
-              let first = content.first,
-              let text = first["text"] as? String else {
+        // Decode MCP API response and surface structured MCP error payloads.
+        let decoder = JSONDecoder()
+        let mcpResponse: MCPAPIResponse
+        do {
+            mcpResponse = try decoder.decode(MCPAPIResponse.self, from: data)
+        } catch {
+            throw MCPError.decodingError(error)
+        }
+
+        if let error = mcpResponse.error {
+            throw MCPError.serverError("MCP Error \(error.code): \(error.message)")
+        }
+
+        guard let result = mcpResponse.result else {
+            throw MCPError.invalidResponse
+        }
+
+        if result.isError == true {
+            let message = result.content?.first(where: { $0.text?.isEmpty == false })?.text
+            throw MCPError.serverError(message ?? "MCP tool returned an error response")
+        }
+
+        guard let text = result.content?.first(where: { $0.text?.isEmpty == false })?.text else {
             throw MCPError.invalidResponse
         }
 
@@ -208,7 +241,7 @@ public actor MCPClient {
         tool: String,
         arguments: [String: Any] = [:]
     ) async throws -> T {
-        let cacheKey = "\(tool)-\(arguments.description)"
+        let cacheKey = makeCacheKey(tool: tool, arguments: arguments)
 
         // Check cache
         if let cached = cache[cacheKey],

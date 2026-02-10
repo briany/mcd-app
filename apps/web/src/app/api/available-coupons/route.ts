@@ -1,12 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { mcpClient } from "@/lib/mcpClient";
 import { handleApiError } from "@/lib/api";
 import { requireAuth } from "@/lib/authHelpers";
 import { withRateLimit } from "@/lib/withRateLimit";
+import { handleCorsPreFlight } from "@/lib/corsHelpers";
 
-// Cache available coupons for 1 minute (60 seconds)
-export const revalidate = 60;
+// Authenticated data should not be statically cached.
+export const dynamic = "force-dynamic";
 
 export const GET = withRateLimit(async () => {
   try {
@@ -20,3 +21,7 @@ export const GET = withRateLimit(async () => {
     return handleApiError(error);
   }
 }, "api");
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreFlight(request);
+}

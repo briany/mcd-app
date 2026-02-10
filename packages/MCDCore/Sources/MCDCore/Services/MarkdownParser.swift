@@ -54,7 +54,10 @@ public struct MarkdownParser {
         let items = markdown.components(separatedBy: "- 优惠券标题：").dropFirst()
 
         for (index, item) in items.enumerated() {
-            let lines = item.split(separator: "\\", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            let normalizedItem = normalizeEscapedLineBreaks(in: item)
+            let lines = normalizedItem
+                .split(separator: "\n", omittingEmptySubsequences: false)
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
             guard let name = lines.first?.trimmingCharacters(in: .whitespaces) else { continue }
 
@@ -76,7 +79,7 @@ public struct MarkdownParser {
             let id = name.replacingOccurrences(of: " ", with: "-").lowercased()
 
             // Store raw markdown section
-            let rawMarkdown = "## \(name)\n\n- 优惠券标题：\(item)"
+            let rawMarkdown = "## \(name)\n\n- 优惠券标题：\(normalizedItem)"
 
             coupons.append(Coupon(
                 id: "\(id)-\(index)",
@@ -100,7 +103,10 @@ public struct MarkdownParser {
         let items = markdown.components(separatedBy: "-   **活动标题**：").dropFirst()
 
         for item in items {
-            let lines = item.split(separator: "\\", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            let normalizedItem = normalizeEscapedLineBreaks(in: item)
+            let lines = normalizedItem
+                .split(separator: "\n", omittingEmptySubsequences: false)
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
             guard let title = lines.first?.trimmingCharacters(in: .whitespaces) else { continue }
 
@@ -120,7 +126,7 @@ public struct MarkdownParser {
             let id = title.prefix(20).replacingOccurrences(of: " ", with: "-").lowercased()
 
             // Store raw markdown section
-            let rawMarkdown = "## \(title)\n\n-   **活动标题**：\(item)"
+            let rawMarkdown = "## \(title)\n\n-   **活动标题**：\(normalizedItem)"
 
             campaigns.append(Campaign(
                 id: id,
@@ -138,6 +144,10 @@ public struct MarkdownParser {
     }
 
     // MARK: - Helper Methods
+
+    private static func normalizeEscapedLineBreaks(in text: String) -> String {
+        text.replacingOccurrences(of: "\\", with: "\n")
+    }
 
     private static func extractImageUrl(from line: String) -> String? {
         // Extract URL from <img src="..." pattern
