@@ -4,6 +4,24 @@ import { useAvailableCoupons } from "@/hooks/useAvailableCoupons";
 import type { CouponListResponse, AutoClaimResponse } from "@/lib/types";
 import { createQueryWrapper } from "../utils";
 
+const createCsrfResponse = (): Response =>
+  ({
+    ok: true,
+    status: 200,
+    json: async () => ({ token: "test-csrf-token" }),
+  }) as Response;
+
+const mockFetchWithCsrf = (handler: (url: string) => Response | Promise<Response>) =>
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+    if (url === "/api/csrf-token") {
+      return createCsrfResponse();
+    }
+    if (typeof url !== "string") {
+      throw new Error("Unexpected URL");
+    }
+    return handler(url);
+  });
+
 describe("useAvailableCoupons", () => {
   describe("query", () => {
     it("returns available coupon data on success", async () => {
@@ -21,11 +39,16 @@ describe("useAvailableCoupons", () => {
         page: 1,
       };
 
-      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      } as Response);
+      const fetchSpy = mockFetchWithCsrf(async (url) => {
+        if (url === "/api/available-coupons") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => mockResponse,
+          } as Response;
+        }
+        throw new Error("Unexpected URL");
+      });
 
       const { result } = renderHook(() => useAvailableCoupons(), {
         wrapper: createQueryWrapper(),
@@ -37,10 +60,15 @@ describe("useAvailableCoupons", () => {
     });
 
     it("handles error when API call fails", async () => {
-      vi.spyOn(globalThis, "fetch").mockResolvedValue({
-        ok: false,
-        status: 500,
-      } as Response);
+      mockFetchWithCsrf(async (url) => {
+        if (url === "/api/available-coupons") {
+          return {
+            ok: false,
+            status: 500,
+          } as Response;
+        }
+        throw new Error("Unexpected URL");
+      });
 
       const { result } = renderHook(() => useAvailableCoupons(), {
         wrapper: createQueryWrapper(),
@@ -51,9 +79,12 @@ describe("useAvailableCoupons", () => {
     });
 
     it("shows loading state initially", () => {
-      vi.spyOn(globalThis, "fetch").mockImplementation(
-        () => new Promise(() => {})
-      );
+      mockFetchWithCsrf((url) => {
+        if (url === "/api/available-coupons") {
+          return new Promise<Response>(() => {});
+        }
+        throw new Error("Unexpected URL");
+      });
 
       const { result } = renderHook(() => useAvailableCoupons(), {
         wrapper: createQueryWrapper(),
@@ -72,7 +103,7 @@ describe("useAvailableCoupons", () => {
         message: "Claimed 5 coupons",
       };
 
-      const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      const fetchSpy = mockFetchWithCsrf(async (url) => {
         if (url === "/api/available-coupons") {
           return {
             ok: true,
@@ -107,7 +138,7 @@ describe("useAvailableCoupons", () => {
     });
 
     it("handles auto-claim error", async () => {
-      vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      mockFetchWithCsrf(async (url) => {
         if (url === "/api/available-coupons") {
           return {
             ok: true,
@@ -140,7 +171,7 @@ describe("useAvailableCoupons", () => {
         resolveAutoClaim = resolve;
       });
 
-      vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      mockFetchWithCsrf(async (url) => {
         if (url === "/api/available-coupons") {
           return {
             ok: true,
@@ -182,7 +213,7 @@ describe("useAvailableCoupons", () => {
         message: "Coupon claimed",
       };
 
-      const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      const fetchSpy = mockFetchWithCsrf(async (url) => {
         if (url === "/api/available-coupons") {
           return {
             ok: true,
@@ -212,14 +243,17 @@ describe("useAvailableCoupons", () => {
         "/api/coupons/claim",
         expect.objectContaining({
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: expect.objectContaining({
+            "Content-Type": "application/json",
+            "x-csrf-token": "test-csrf-token",
+          }),
           body: JSON.stringify({ couponId: "test-coupon-id" }),
         })
       );
     });
 
     it("handles claim error", async () => {
-      vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      mockFetchWithCsrf(async (url) => {
         if (url === "/api/available-coupons") {
           return {
             ok: true,
@@ -252,7 +286,7 @@ describe("useAvailableCoupons", () => {
         resolveClaim = resolve;
       });
 
-      vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      mockFetchWithCsrf(async (url) => {
         if (url === "/api/available-coupons") {
           return {
             ok: true,

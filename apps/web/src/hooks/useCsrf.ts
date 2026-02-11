@@ -4,13 +4,24 @@ import { useQuery } from "@tanstack/react-query";
 
 const CSRF_TOKEN_HEADER = "x-csrf-token";
 
+function parseCsrfToken(data: unknown): string {
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    typeof (data as { token?: unknown }).token !== "string"
+  ) {
+    throw new Error("Invalid CSRF token response");
+  }
+
+  return (data as { token: string }).token;
+}
+
 async function fetchCsrfToken(): Promise<string> {
   const response = await fetch("/api/csrf-token");
   if (!response.ok) {
     throw new Error("Failed to fetch CSRF token");
   }
-  const data = await response.json();
-  return data.token;
+  return parseCsrfToken(await response.json());
 }
 
 export function useCsrf() {

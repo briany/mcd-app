@@ -6,8 +6,7 @@ final class ViewModelTests: XCTestCase {
     // MARK: - CouponViewModel Tests
 
     @MainActor
-    func testCouponViewModelInitialState() throws {
-        try XCTSkipIf(true, "Skip ViewModel tests that require MCP token configuration")
+    func testCouponViewModelInitialState() {
         let viewModel = CouponViewModel()
 
         XCTAssertTrue(viewModel.myCoupons.isEmpty)
@@ -19,8 +18,7 @@ final class ViewModelTests: XCTestCase {
     // MARK: - CampaignViewModel Tests
 
     @MainActor
-    func testCampaignViewModelInitialState() throws {
-        try XCTSkipIf(true, "Skip ViewModel tests that require MCP token configuration")
+    func testCampaignViewModelInitialState() {
         let viewModel = CampaignViewModel()
 
         XCTAssertTrue(viewModel.campaigns.isEmpty)

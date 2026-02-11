@@ -17,6 +17,12 @@ export interface SecurityEvent {
   timestamp: string;
 }
 
+export interface SecurityRequestContext {
+  method: string;
+  pathname: string;
+  origin?: string;
+}
+
 /**
  * Log incoming requests (can be extended to send to logging service)
  */
@@ -55,4 +61,26 @@ export function logSecurityEvent(event: Omit<SecurityEvent, "timestamp">): void 
 
   // In production, send to security monitoring service
   // TODO: Integrate with Sentry, DataDog, or similar
+}
+
+/**
+ * Security logs should avoid URLs with query params and other noisy metadata.
+ */
+export function getSecurityRequestContext(
+  request: NextRequest,
+  options?: { includeOrigin?: boolean }
+): SecurityRequestContext {
+  const context: SecurityRequestContext = {
+    method: request.method,
+    pathname: request.nextUrl.pathname,
+  };
+
+  if (options?.includeOrigin) {
+    const origin = request.headers.get("origin");
+    if (origin) {
+      context.origin = origin;
+    }
+  }
+
+  return context;
 }

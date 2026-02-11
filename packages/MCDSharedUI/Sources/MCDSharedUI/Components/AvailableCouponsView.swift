@@ -4,6 +4,8 @@ import MCDCore
 public struct AvailableCouponsView: View {
     @StateObject private var viewModel = CouponViewModel()
     @State private var showingClaimSuccess = false
+    @State private var claimSuccessMessage = "All available coupons have been claimed!"
+    @State private var couponPendingClaim: Coupon?
     @State private var selectedCoupon: Coupon?
 
     private let gridColumns = [
@@ -47,13 +49,13 @@ public struct AvailableCouponsView: View {
                                             selectedCoupon = coupon
                                         }
 
-                                    // Individual Claim Button (placeholder)
                                     Button("Claim") {
-                                        // TODO: Implement individual claim functionality
+                                        couponPendingClaim = coupon
                                     }
                                     .buttonStyle(.borderedProminent)
                                     .controlSize(.large)
                                     .frame(maxWidth: .infinity)
+                                    .disabled(viewModel.isLoading)
                                 }
                             }
                         }
@@ -67,18 +69,50 @@ public struct AvailableCouponsView: View {
                     Button("Claim All") {
                         Task {
                             let claimSucceeded = await viewModel.autoClaimAll()
-                            showingClaimSuccess = claimSucceeded
+                            if claimSucceeded {
+                                claimSuccessMessage = "All available coupons have been claimed!"
+                                showingClaimSuccess = true
+                            }
                         }
                     }
                     .disabled(viewModel.isLoading || viewModel.availableCoupons.isEmpty)
                 }
+            }
+            .confirmationDialog(
+                "Claim Coupon",
+                isPresented: Binding(
+                    get: { couponPendingClaim != nil },
+                    set: { newValue in
+                        if !newValue {
+                            couponPendingClaim = nil
+                        }
+                    }
+                ),
+                titleVisibility: .visible,
+                presenting: couponPendingClaim
+            ) { coupon in
+                Button("Claim This Coupon") {
+                    couponPendingClaim = nil
+                    Task {
+                        let claimSucceeded = await viewModel.claimCoupon(coupon)
+                        if claimSucceeded {
+                            claimSuccessMessage = "Individual claim is not supported by backend yet, so all available coupons were claimed."
+                            showingClaimSuccess = true
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    couponPendingClaim = nil
+                }
+            } message: { coupon in
+                Text("The backend currently supports only auto-claim. Claiming \"\(coupon.name)\" will claim all available coupons.")
             }
             .alert("Success", isPresented: $showingClaimSuccess) {
                 Button("OK") {
                     showingClaimSuccess = false
                 }
             } message: {
-                Text("All available coupons have been claimed!")
+                Text(claimSuccessMessage)
             }
             .alert("Error", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },

@@ -1,6 +1,15 @@
 import Foundation
 import SwiftUI
 
+protocol CouponClientProtocol {
+    func fetchMyCoupons(page: Int, pageSize: Int) async throws -> CouponListResponse
+    func fetchAvailableCoupons() async throws -> CouponListResponse
+    func autoClaimCoupons() async throws -> AutoClaimResponse
+    func clearCache() async
+}
+
+extension MCPClient: CouponClientProtocol {}
+
 @MainActor
 public class CouponViewModel: ObservableObject {
     @Published public var myCoupons: [Coupon] = []
@@ -8,9 +17,15 @@ public class CouponViewModel: ObservableObject {
     @Published public var isLoading = false
     @Published public var errorMessage: String?
 
-    private let client = MCPClient.shared
+    private let client: CouponClientProtocol
 
-    public init() {}
+    public init() {
+        self.client = MCPClient.shared
+    }
+
+    init(client: CouponClientProtocol) {
+        self.client = client
+    }
 
     // MARK: - Public Methods
 
@@ -19,7 +34,7 @@ public class CouponViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let response = try await client.fetchMyCoupons()
+            let response = try await client.fetchMyCoupons(page: 1, pageSize: 200)
             myCoupons = response.coupons
         } catch let error as MCPError {
             errorMessage = error.errorDescription
@@ -72,6 +87,13 @@ public class CouponViewModel: ObservableObject {
             isLoading = false
             return false
         }
+    }
+
+    @discardableResult
+    public func claimCoupon(_ coupon: Coupon) async -> Bool {
+        // Backend currently supports only auto-claim for available coupons.
+        _ = coupon
+        return await autoClaimAll()
     }
 
     public func refresh() async {

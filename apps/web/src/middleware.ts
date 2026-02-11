@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 import { allowedOrigins } from "@/lib/config";
+import { getSecurityRequestContext, logSecurityEvent } from "@/lib/logging";
 
 function appendVaryHeader(response: NextResponse, value: string) {
   const current = response.headers.get("Vary");
@@ -21,8 +22,12 @@ function appendVaryHeader(response: NextResponse, value: string) {
   }
 }
 
-function setCorsHeaders(response: NextResponse, origin: string | null) {
-  if (origin && allowedOrigins.includes(origin)) {
+function setCorsHeaders(
+  response: NextResponse,
+  origin: string | null,
+  isAllowedOrigin: boolean
+) {
+  if (origin && isAllowedOrigin) {
     response.headers.set("Access-Control-Allow-Origin", origin);
     response.headers.set("Access-Control-Allow-Credentials", "true");
     appendVaryHeader(response, "Origin");
@@ -49,10 +54,14 @@ function addSecurityHeaders(response: NextResponse, req: NextRequest) {
   // Note: Next.js requires 'unsafe-inline' for hydration scripts.
   // For stricter CSP, implement nonces via next.config.js headers.
   // See: https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy
+  const scriptSrc =
+    process.env.NODE_ENV === "production"
+      ? "script-src 'self' 'unsafe-inline'"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
   const csp = [
     "default-src 'self'",
     // Next.js requires unsafe-inline for hydration and inline scripts
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    scriptSrc,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https://mcd-portal-prod-cos1-1300270282.cos.ap-shanghai.myqcloud.com https://cms-cdn.mcd.cn https://img.mcd.cn data:",
     "font-src 'self' data:",
@@ -104,15 +113,24 @@ function isPublicRoute(pathname: string): boolean {
 }
 
 export async function middleware(req: NextRequest) {
-  const response = NextResponse.next();
   const origin = req.headers.get("origin");
   const pathname = req.nextUrl.pathname;
+  const isAllowedOrigin = origin ? allowedOrigins.includes(origin) : false;
 
-  // CORS headers
-  setCorsHeaders(response, origin);
+  const finalizeResponse = (response: NextResponse): NextResponse => {
+    setCorsHeaders(response, origin, isAllowedOrigin);
+    addSecurityHeaders(response, req);
+    return response;
+  };
 
-  // Security headers for all routes
-  addSecurityHeaders(response, req);
+  if (origin && !isAllowedOrigin) {
+    logSecurityEvent({
+      type: "blocked_origin",
+      details: getSecurityRequestContext(req, { includeOrigin: true }),
+    });
+  }
+
+  const response = finalizeResponse(NextResponse.next());
 
   // Skip auth check for public routes
   if (isPublicRoute(pathname)) {
@@ -130,7 +148,13 @@ export async function middleware(req: NextRequest) {
   if (isProtectedApiRoute(pathname)) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      logSecurityEvent({
+        type: "unauthorized_api_access",
+        details: getSecurityRequestContext(req),
+      });
+      return finalizeResponse(
+        NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+      );
     }
   }
 
@@ -138,9 +162,13 @@ export async function middleware(req: NextRequest) {
   if (isProtectedPage(pathname)) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
+      logSecurityEvent({
+        type: "unauthorized_page_access",
+        details: getSecurityRequestContext(req),
+      });
       const signInUrl = new URL("/auth/signin", req.url);
       signInUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(signInUrl);
+      return finalizeResponse(NextResponse.redirect(signInUrl));
     }
   }
 

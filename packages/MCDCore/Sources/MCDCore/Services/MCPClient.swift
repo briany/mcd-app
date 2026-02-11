@@ -120,12 +120,22 @@ private struct JSONCodingKeys: CodingKey {
 public actor MCPClient {
     public static let shared = MCPClient()
 
-    private let baseURL = MCDConfiguration.mcpBaseURL
+    private let baseURL: String
+    private let tokenProvider: @Sendable () -> String?
+    private let session: URLSession
 
     private var cache: [String: (data: Data, timestamp: Date)] = [:]
     private let cacheExpiration: TimeInterval = 300 // 5 minutes
 
-    private init() {}
+    init(
+        baseURL: String = MCDConfiguration.mcpBaseURL,
+        tokenProvider: @escaping @Sendable () -> String? = { MCDConfiguration.mcpToken },
+        session: URLSession = .shared
+    ) {
+        self.baseURL = baseURL
+        self.tokenProvider = tokenProvider
+        self.session = session
+    }
 
     private func makeCacheKey(tool: String, arguments: [String: Any]) -> String {
         guard !arguments.isEmpty else { return tool }
@@ -145,7 +155,7 @@ public actor MCPClient {
 
     /// Get the MCP token, throwing an error if not configured
     private func getToken() throws -> String {
-        guard let token = MCDConfiguration.mcpToken else {
+        guard let token = tokenProvider() else {
             throw MCPError.configurationError("MCP Token not configured. Please add MCD_MCP_TOKEN to Config.plist or set it as an environment variable.")
         }
         return token
@@ -186,7 +196,7 @@ public actor MCPClient {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         // Execute request
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw MCPError.invalidResponse
@@ -270,7 +280,7 @@ public actor MCPClient {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         // Execute request
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw MCPError.invalidResponse
