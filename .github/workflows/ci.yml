@@ -72,12 +72,7 @@ jobs:
           NEXTAUTH_SECRET: ci-build-dummy-secret-not-for-production-use
           NEXTAUTH_URL: http://localhost:3000
       - name: E2E tests
-        run: |
-          npm run start -- --hostname 127.0.0.1 --port 3000 &
-          SERVER_PID=$!
-          npx wait-on http://127.0.0.1:3000
-          npm run test:e2e
-          kill $SERVER_PID
+        run: npm run test:e2e
         env:
           NEXT_PUBLIC_MCP_BASE_URL: https://mcp.mcd.cn/mcp-servers/mcd-mcp
           MCD_MCP_TOKEN: dummy-token-for-e2e-tests
